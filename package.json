@@ -1,6 +1,7 @@
 {
   "private": true,
   "author": "mickwif <mickweb3@proton.me>",
+  "homepage": "https://euclid-twin.github.io/sodaxton",
   "scripts": {
     "dev": "umi dev",
     "build": "umi build",
