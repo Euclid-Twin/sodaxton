@@ -22,7 +22,7 @@ export default defineConfig({
 
   ghPages: {
     dir: "dist",
-    useCDN: false,
+    useCDN: true,
     // ...gh-pages#PublishOptions
   },
   // devServer: {
