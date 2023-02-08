@@ -19,7 +19,10 @@
       "prettier --parser=typescript --write"
     ]
   },
-  "repository": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Euclid-Twin/sodaxton"
+  },
   "dependencies": {
     "@ant-design/pro-layout": "^6.5.0",
     "@grammyjs/conversations": "github:grammyjs/conversations",
