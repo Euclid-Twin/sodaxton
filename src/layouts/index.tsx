@@ -104,7 +104,7 @@ function TonConnect() {
           </button>
         )}
         {!isMobile() && (
-          <div>
+          <div style={{ fontSize: "18px" }}>
             Scan with your mobile tonhub wallet:
             <br />
             <br />
