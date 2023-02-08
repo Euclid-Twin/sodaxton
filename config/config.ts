@@ -3,7 +3,7 @@ import { defineConfig } from "umi";
 export default defineConfig({
   headScripts: ["https://telegram.org/js/telegram-web-app.js"],
   request: {},
-
+  hash: true,
   routes: [
     {
       exact: false,
