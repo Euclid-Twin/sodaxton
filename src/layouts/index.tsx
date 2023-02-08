@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { TonClient } from "ton";
 import { useEffect } from "react";
+import { useModel } from "umi";
 // TODO change to L3 client
 export const tc = new TonClient({
   endpoint: "https://scalable-api.tonwhales.com/jsonRPC",
@@ -20,13 +21,13 @@ export const tc = new TonClient({
 let wasPendingConnectionChecked = false;
 export default function Layout(props: any) {
   const queryClient = new QueryClient();
-
+  const { address, setAddress } = useModel("app");
   const [connectionState, setConnectionState] =
     useLocalStorage<RemoteConnectPersistance>("connection", {
       type: "initing",
     });
 
-  const connect = useTonhubConnect();
+  const connect: any = useTonhubConnect();
   const isConnected = connect.state.type === "online";
   console.log("1", connect.state.type);
   // fix for stale connections, can probably be improved
@@ -38,6 +39,12 @@ export default function Layout(props: any) {
     }
     wasPendingConnectionChecked = true;
   }, [connectionState]);
+
+  useEffect(() => {
+    if (connect.state?.walletConfig?.address) {
+      setAddress(connect.state?.walletConfig?.address);
+    }
+  }, [isConnected]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -51,6 +58,7 @@ export default function Layout(props: any) {
           setConnectionState(s as RemoteConnectPersistance);
         }}
       >
+        {props.children}
         <_TonConnecterInternal {...props} />
       </TonhubConnectProvider>
     </QueryClientProvider>
@@ -58,16 +66,15 @@ export default function Layout(props: any) {
 }
 
 function _TonConnecterInternal(props: any) {
-  const connect = useTonhubConnect();
+  const connect: any = useTonhubConnect();
   const isConnected = connect.state.type === "online";
   console.log(connect.state.type);
+
   return (
     <>
-      {!isConnected && <TonConnect />}
-      {isConnected && (
-        <div style={{ textAlign: "left", marginBottom: 20 }}>
-          {/* <TonWalletDetails /> */}
-          {props.children}
+      {!isConnected && (
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <TonConnect />
         </div>
       )}
     </>

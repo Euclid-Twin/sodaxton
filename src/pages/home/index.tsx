@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getBindResult, IBindResultData } from "@/api/apis";
 import {
   RemoteConnectPersistance,
@@ -11,6 +11,9 @@ import { Button } from "antd";
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
   const connect: any = useTonhubConnect();
+  const address = useMemo(() => {
+    return connect.state?.walletConfig?.address;
+  }, [connect]);
   const getBind = async () => {
     if (connect.state?.walletConfig?.address) {
       const params = {
@@ -41,7 +44,7 @@ export default function HomePage() {
       <h1>Welcome to Soton</h1>
       <h3>Your address: </h3>
       <p className="address-display">{connect.state?.walletConfig?.address}</p>
-      {bindData.length === 0 && (
+      {bindData.length === 0 && address && (
         <div className="bind-addr">
           <Button
             type="primary"
