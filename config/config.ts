@@ -19,7 +19,7 @@ export default defineConfig({
       ],
     },
   ],
-  plugins: ["umi-plugin-gh-pages"],
+
   ghPages: {
     dir: "dist",
     useCDN: true,
