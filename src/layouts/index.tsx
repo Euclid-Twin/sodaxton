@@ -13,6 +13,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TonClient } from "ton";
 import { useEffect } from "react";
 import { useModel } from "umi";
+
 // TODO change to L3 client
 export const tc = new TonClient({
   endpoint: "https://scalable-api.tonwhales.com/jsonRPC",
@@ -47,29 +48,36 @@ export default function Layout(props: any) {
   }, [isConnected]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TonhubConnectProvider
-        network="mainnet"
-        url="https://ton.org/"
-        name="TON TWA BOT"
-        debug={false}
-        connectionState={connectionState}
-        setConnectionState={(s) => {
-          setConnectionState(s as RemoteConnectPersistance);
-        }}
-      >
-        {props.children}
-        <_TonConnecterInternal {...props} />
-      </TonhubConnectProvider>
-    </QueryClientProvider>
+    <div className="layout">
+      {props.children}
+      <QueryClientProvider client={queryClient}>
+        <TonhubConnectProvider
+          network="mainnet"
+          url="https://ton.org/"
+          name="TON TWA BOT"
+          debug={false}
+          connectionState={connectionState}
+          setConnectionState={(s) => {
+            setConnectionState(s as RemoteConnectPersistance);
+          }}
+        >
+          <_TonConnecterInternal {...props} />
+        </TonhubConnectProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 
 function _TonConnecterInternal(props: any) {
   const connect: any = useTonhubConnect();
+  const { setAddress } = useModel("app");
   const isConnected = connect.state.type === "online";
   console.log(connect.state.type);
-
+  useEffect(() => {
+    if (connect.state?.walletConfig?.address) {
+      setAddress(connect.state?.walletConfig?.address);
+    }
+  }, [connect]);
   return (
     <>
       {!isConnected && (

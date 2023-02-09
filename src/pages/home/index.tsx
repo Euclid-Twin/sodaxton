@@ -7,17 +7,18 @@ import {
 } from "react-ton-x";
 import "./index.less";
 import { Button } from "antd";
+import { useModel } from "umi";
 
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
-  const connect: any = useTonhubConnect();
-  const address = useMemo(() => {
-    return connect.state?.walletConfig?.address;
-  }, [connect]);
+  const { address } = useModel("app");
+  // const address = useMemo(() => {
+  //   return connect.state?.walletConfig?.address;
+  // }, [connect]);
   const getBind = async () => {
-    if (connect.state?.walletConfig?.address) {
+    if (address) {
       const params = {
-        addr: connect.state?.walletConfig?.address,
+        addr: address,
         // tid: "",
       };
       const res: IBindResultData[] = await getBindResult(params);
@@ -27,13 +28,13 @@ export default function HomePage() {
   };
   useEffect(() => {
     getBind();
-  }, [connect]);
+  }, [address]);
 
   const handleBind = () => {
     const msg = {
       type: "bind_addr",
       data: {
-        address: connect.state?.walletConfig?.address,
+        address: address,
       },
     };
     window.Telegram.WebApp.sendData(JSON.stringify(msg));
@@ -43,7 +44,7 @@ export default function HomePage() {
     <div className="home-container">
       <h1>Welcome to Soton</h1>
       <h3>Your address: </h3>
-      <p className="address-display">{connect.state?.walletConfig?.address}</p>
+      <p className="address-display">{address}</p>
       {bindData.length === 0 && address && (
         <div className="bind-addr">
           <Button
