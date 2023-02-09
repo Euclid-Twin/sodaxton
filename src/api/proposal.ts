@@ -63,7 +63,7 @@ export const getProposalList = async (params: {
   page?: number;
   gap?: number;
   chain_name: string;
-  currentBlockHeight: number;
+  currentBlockHeight?: number;
 }): Promise<{ total: number; data: Proposal[] }> => {
   const proposals = await Api.getProposalList(params);
   const res: { total: number; data: Proposal[] } = {

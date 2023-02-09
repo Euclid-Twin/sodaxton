@@ -1,11 +1,33 @@
 import * as Api from "./apis";
 import { Collection, NFT } from "./apis";
-
+import { CHAIN_NAME } from "@/utils/constant";
 export interface CollectionDao {
   collection: Collection;
   dao: DaoItem;
 }
 
+export const getCollectionDaoByCollectionId = async (params: {
+  id: string;
+  chainId?: number;
+}): Promise<CollectionDao | null> => {
+  const item = await Api.getCollectionDaoByCollectionId(params);
+  if (!item) return null;
+  const dao = item.dao;
+  // TODO: DAO share the same id with collection
+  if (dao) {
+    if (!dao.id) dao.id = item.id;
+    if (!dao.img) dao.img = item.img;
+    if (!dao.name) dao.name = item.name;
+  }
+  return {
+    collection: {
+      id: item.id,
+      name: item.name,
+      image: item.img,
+    },
+    dao: toDaoItem(dao),
+  };
+};
 export interface DaoItem {
   name: string;
   startDate: number;
@@ -42,7 +64,7 @@ export const getDaoList = async (params: {
   name?: string;
   offset?: number;
   limit?: number;
-  chain_name: string;
+  //   chain_name: string;
 }): Promise<{ total: number; data: DaoItem[] }> => {
   const { address, name, offset, limit = 10 } = params;
   let page: number = 1;
@@ -52,7 +74,7 @@ export const getDaoList = async (params: {
     name,
     page,
     gap: limit,
-    chain_name: params.chain_name,
+    chain_name: CHAIN_NAME,
   });
   const res: { total: number; data: DaoItem[] } = {
     total: daos.total,

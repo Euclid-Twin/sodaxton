@@ -146,7 +146,7 @@ export interface IGetProposalListParams {
   page?: number;
   gap?: number;
   chain_name: string;
-  currentBlockHeight: number;
+  currentBlockHeight?: number;
 }
 export interface IGetProposalListResult {
   total: number;
@@ -285,4 +285,22 @@ export const getBindResult = async (
     console.error(e);
     return [];
   }
+};
+export interface ICollectionItem {
+  id: string;
+  name: string;
+  img: string;
+  dao: IDaoItem;
+}
+export const getCollectionDaoByCollectionId = async (params: {
+  id: string;
+  chainId?: number;
+}): Promise<ICollectionItem | null> => {
+  const { id, chainId } = params;
+  const url = `${API_HOST}/collection/${id}`;
+  const res = await httpRequest({ url });
+  console.debug("[core-dao] getCollectionDaoByCollectionId: ", res);
+  // FIXME: handle error
+  if (res.error) return null;
+  return res.data || null;
 };

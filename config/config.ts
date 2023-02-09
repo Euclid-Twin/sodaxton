@@ -14,7 +14,6 @@ export default defineConfig({
         { path: "/daos", component: "daos" },
         { path: "/daos/:id", component: "daoDetail" },
         { path: "/proposals", component: "proposals" },
-        { path: "/proposals/:id", component: "proposalDetail" },
         { path: "/proposals/create", component: "proposalCreate" },
       ],
     },

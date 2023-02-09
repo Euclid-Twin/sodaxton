@@ -7,7 +7,7 @@ import {
 } from "react-ton-x";
 import "./index.less";
 import { Button } from "antd";
-import { useModel } from "umi";
+import { useModel, Link } from "umi";
 
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
@@ -56,6 +56,9 @@ export default function HomePage() {
           </Button>
         </div>
       )}
+      <div className="navs">
+        <Link to="/daos">View Daos</Link>
+      </div>
     </div>
   );
 }
