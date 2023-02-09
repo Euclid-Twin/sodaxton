@@ -9,3 +9,5 @@
 .swc
 private.*
 ssl.conf
+build.sh
+dist.tar.gz
