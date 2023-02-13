@@ -3,7 +3,7 @@ import { defineConfig } from "umi";
 export default defineConfig({
   define: {
     "process.env.CHAIN_ENV": "TONtest",
-    "process.env.TON_SERVER": "https://soton.sonet.one/api/v1",
+    "process.env.TON_SERVER": "https://soton.sonet.one",
   },
   headScripts: ["https://telegram.org/js/telegram-web-app.js"],
   request: {},
