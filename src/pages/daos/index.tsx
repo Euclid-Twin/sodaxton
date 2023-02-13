@@ -2,6 +2,7 @@ import { DaoItem, getDaoList } from "@/api";
 import { useState, useEffect } from "react";
 import { useModel, history } from "umi";
 import { Pagination } from "antd";
+import Back from "@/components/Back";
 import "./index.less";
 const PAGE_SIZE = 10;
 export default () => {
@@ -27,6 +28,7 @@ export default () => {
   }, [address]);
   return (
     <div className="page-container daos-container">
+      <Back />
       <h1 className="page-title">Daos</h1>
       <ul className="dao-list">
         {daos.map((item) => (

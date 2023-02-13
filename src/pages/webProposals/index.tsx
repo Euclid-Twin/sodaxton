@@ -1,29 +1,28 @@
 import "./index.less";
 import { useState, useEffect } from "react";
-import { useParams, useModel } from "umi";
-import { getCollectionDaoByCollectionId } from "@/api";
+import { useLocation, useParams, useModel } from "umi";
 import {
   getProposalList,
   getProposalPermission,
   Proposal,
 } from "@/api/proposal";
 import { CHAIN_NAME } from "@/utils/constant";
-import { formatTimestamp } from "@/utils";
+import { getCollectionDaoByCollectionId } from "@/api";
 import { Pagination, Button, Modal } from "antd";
-import { history } from "umi";
-import ProposalItemStatus from "@/components/ProposalItemStatus";
-import ProposalResults from "@/components/ProposalResults";
+import { formatTimestamp } from "@/utils";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
-import Back from "@/components/Back";
+
 const PAGE_SIZE = 10;
 
 export default () => {
+  const location: any = useLocation();
+  console.log(location);
   const { currentDao, setCurrentDao, address } = useModel("app");
-  const { id }: any = useParams();
+
+  const { dao } = location.query;
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [list, setList] = useState<Proposal[]>([]);
-  const [inDao, setInDao] = useState(false);
   const [proposal, setProposal] = useState<Proposal>();
 
   const fetchDaoDetail = async (daoId: string) => {
@@ -50,39 +49,15 @@ export default () => {
     setList(list);
   };
 
-  const fetchProposalPermission = async () => {
-    const res = await getProposalPermission(
-      currentDao!.id,
-      address!,
-      CHAIN_NAME
-    );
-    setInDao(res);
-  };
   useEffect(() => {
-    if (currentDao && address) {
-      // fetchUserInDao();
-      fetchProposalPermission();
-    }
-  }, [currentDao, address]);
+    fetchDaoDetail(dao);
+  }, [dao]);
   useEffect(() => {
-    if (id) {
-      fetchDaoDetail(id);
-      fetchProposalList(id);
-    }
-  }, [page]);
-
-  const handleChangePage = (page: number) => {
-    setPage(page);
-  };
-
-  const handleDetailDialogClose = (updatedProposalId?: string) => {
-    setProposal(undefined);
-    fetchProposalList(currentDao!.id);
-  };
+    fetchProposalList(dao);
+  }, [dao, page]);
 
   return (
     <div className="page-container dao-detail-container">
-      <Back />
       <h1 className="page-title">Dao detail</h1>
       <div className="dao-detail-header">
         <img src={currentDao?.image} alt="" />
@@ -99,14 +74,6 @@ export default () => {
       <div className="proposal-list-container">
         <div className="proposal-list-header">
           <p>Proposals</p>
-          <Button
-            type="primary"
-            className="btn-new-proposal"
-            onClick={() => history.push("/proposals/create")}
-            disabled={!inDao}
-          >
-            New Proposal
-          </Button>
         </div>
         <div className="proposal-list">
           {list.map((item) => (
@@ -119,7 +86,7 @@ export default () => {
           <Pagination
             total={total}
             pageSize={PAGE_SIZE}
-            onChange={handleChangePage}
+            onChange={(page: number) => setPage(page)}
             current={page}
             showSizeChanger={false}
           />
@@ -129,7 +96,7 @@ export default () => {
         <ProposalDetailDialog
           show={proposal.id !== undefined}
           detail={proposal}
-          onClose={handleDetailDialogClose}
+          onClose={() => setProposal(undefined)}
         />
       )}
     </div>

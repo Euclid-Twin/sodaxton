@@ -7,3 +7,5 @@ export const formatTimestamp = (
   if (!timestamp) return "";
   return dayjs(timestamp).format(format);
 };
+
+export const sha3 = (str: string) => {};

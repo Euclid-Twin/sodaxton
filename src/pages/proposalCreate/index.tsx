@@ -18,10 +18,12 @@ import {
   ExclamationCircleOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
-
+import Back from "@/components/Back";
 import ProposalFormItems from "@/components/ProposalFormItems";
-import { createProposal } from "@/api/proposal";
+import { createProposal } from "@/api/server";
 import { history, useLocation, useModel } from "umi";
+import { CHAIN_NAME } from "@/utils/constant";
+import { SUCCESS_CODE } from "@/utils/request";
 const VoterBallotOptions = [
   {
     value: 1,
@@ -42,7 +44,57 @@ export default () => {
 
   const [form] = Form.useForm();
 
-  const handleCreate = async () => {};
+  const handleCreate = async () => {
+    if (!address) {
+      message.warn("Metamask not found.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const values = await form.validateFields();
+      const startTime = values.period[0].valueOf();
+      const endTime = values.period[1].valueOf();
+      const params = {
+        creator: address,
+        snapshotBlock: 0,
+        daoId: currentDao!.id,
+        title: values.title,
+        description: values.description,
+        startTime,
+        endTime,
+        ballotThreshold: values.ballot_threshold,
+        items: values.items,
+        voterType: values.voter_type,
+        sig: "",
+        chain_name: CHAIN_NAME,
+      };
+      const result: any = await createProposal(params);
+      if (result && result.code === SUCCESS_CODE) {
+        message.success("Your proposal is created successfully.");
+        history.goBack();
+        setSubmitting(false);
+      } else {
+        if (result && result.error.includes("Duplicate entry")) {
+          message.error("Proposal's title or description is duplicated.");
+          setSubmitting(false);
+          return;
+        }
+        message.error("Create proposal failed.");
+        setSubmitting(false);
+      }
+      setSubmitting(false);
+      //   const msg = {
+      //     type: "create_proposal",
+      //     data: { ...params },
+      //   };
+      //   window.Telegram.WebApp.sendData(JSON.stringify(msg));
+      setSubmitting(false);
+    } catch (e) {
+      console.error("[extension-proposal] newProposal: ", e);
+      message.error("Create proposal failed.");
+      setSubmitting(false);
+    }
+  };
   const disabledDate = (current: any) => {
     // Can not select days before today and today
     return current && current < moment().endOf("day");
@@ -51,6 +103,7 @@ export default () => {
   return (
     <div className="page-container new-proposal-container">
       <h1 className="page-title">New Proposal</h1>
+      <Back />
       <Form
         form={form}
         name="basic"
@@ -121,8 +174,8 @@ export default () => {
               disabledDate={disabledDate}
               showTime={{
                 defaultValue: [
-                  moment("00:00:00", "HH:mm:ss"),
-                  moment("23:59:59", "HH:mm:ss"),
+                  moment("00:00:00", "HH:mm"),
+                  moment("23:59:59", "HH:mm"),
                 ],
               }}
               onChange={(val: any) => {
@@ -132,15 +185,7 @@ export default () => {
               }}
             />
           </Form.Item>
-          <div className="snapshot-blockheight">
-            <span>Block height: </span>
-            {/* <span className="snapshot-block-item">{snapshotBlock}</span> */}
-            {/* <span className="snapshot-block-item-divide"> - </span> */}
-            {/* <span className="snapshot-block-item">{snapshotBlock[1]}</span> */}
-            {/* <Tooltip title="Extra time will refer to the actual block height when the DAO is created.">
-              <ExclamationCircleOutlined />
-            </Tooltip> */}
-          </div>
+
           <Form.Item
             label={
               <p className="label-ballot-threshold">
@@ -219,7 +264,7 @@ export default () => {
           type="default"
           className="btn-cancel"
           onClick={() => {
-            history.push("/daoDetail");
+            history.goBack();
           }}
         >
           Cancel

@@ -100,6 +100,8 @@ export const getProposalStatus = (
   item: IProposalItem,
   blockheight?: Number
 ): ProposalStatusEnum => {
+  // return ProposalStatusEnum.OPEN; //TODO for test
+
   const now = Date.now();
   const totalVotes = item.results.reduce((a, b) => a + b);
   if (item.items.length === 1 && totalVotes >= item.ballot_threshold) {
