@@ -3,6 +3,7 @@ import {
   TonhubConnectProvider,
   useTonhubConnect,
 } from "react-ton-x";
+import { Button } from "antd";
 // TODO change to L3 client
 export const tc = new TonClient({
   endpoint: "https://scalable-api.tonwhales.com/jsonRPC",
@@ -68,11 +69,22 @@ function _TonConnecterInternal(props: any) {
       setAddress(connect.state?.walletConfig?.address);
     }
   }, [connect]);
+
+  const handleLogout = () => {
+    connect.api.revoke();
+    setAddress("");
+  };
+
   return (
     <>
       {!isConnected && (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <TonConnect />
+        </div>
+      )}
+      {isConnected && (
+        <div style={{ marginTop: "20px" }}>
+          <Button onClick={handleLogout}>Logout</Button>
         </div>
       )}
     </>

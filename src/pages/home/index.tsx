@@ -58,8 +58,13 @@ export default function HomePage() {
       <h1 className="page-title">Welcome to Soton</h1>
       {/* <p>InitData: {JSON.stringify(initData, null, 2)}</p>
       <p>DataUnsafe: {JSON.stringify(dataUnsafe, null, 2)}</p> */}
-      <h3 style={{ fontSize: "20px", fontWeight: 500 }}>Your address: </h3>
-      <p className="address-display">{address}</p>
+      {address && (
+        <>
+          <h3 style={{ fontSize: "20px", fontWeight: 500 }}>Your address: </h3>
+          <p className="address-display">{address}</p>
+        </>
+      )}
+
       {bindData.length === 0 && address && (
         <div className="bind-addr">
           <Button
