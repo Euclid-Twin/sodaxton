@@ -7,9 +7,10 @@ import {
 } from "react-ton-x";
 import "./index.less";
 import { Button } from "antd";
-import { useModel, Link } from "umi";
+import { useModel, Link, history } from "umi";
 import TonWalletConnect from "@/components/TonWalletConnect";
-
+import IconCopy from "@/assets/images/copy.svg";
+import { fallbackCopyTextToClipboard } from "@/utils";
 console.log("tonserver: ", process.env.TON_SERVER);
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
@@ -53,32 +54,47 @@ export default function HomePage() {
     window.Telegram.WebApp.sendData(JSON.stringify(msg));
   };
 
+  const addressDisplay = useMemo(() => {
+    if (address) {
+      return address.substring(0, 4) + "..." + address.substr(-4);
+    }
+  }, [address]);
+
   return (
     <div className="home-container">
-      <h1 className="page-title">Welcome to Soton</h1>
-      {/* <p>InitData: {JSON.stringify(initData, null, 2)}</p>
-      <p>DataUnsafe: {JSON.stringify(dataUnsafe, null, 2)}</p> */}
       {address && (
-        <>
-          <h3 style={{ fontSize: "20px", fontWeight: 500 }}>Your address: </h3>
-          <p className="address-display">{address}</p>
-        </>
-      )}
+        <div className="home-content">
+          <h1 className="page-title">Welcome to Soton</h1>
 
-      {bindData.length === 0 && address && (
-        <div className="bind-addr">
-          <Button
-            type="primary"
-            style={{ borderRadius: "5px", height: "32px" }}
-            onClick={handleBind}
-          >
-            Bind your address with Telegram
-          </Button>
-        </div>
-      )}
-      {bindData.length > 0 && address && (
-        <div className="navs">
-          <Link to="/daos">View Daos</Link>
+          <p className="text-tip">Your address: </p>
+          <div className="address-display">
+            <span>{addressDisplay}</span>
+            <img
+              src={IconCopy}
+              alt=""
+              onClick={() => fallbackCopyTextToClipboard(address)}
+            />
+          </div>
+          <div className="bind-addr">
+            {bindData.length === 0 && (
+              <Button
+                type="primary"
+                className="primary-btn bind-btn"
+                onClick={handleBind}
+              >
+                Bind your address with Telegram
+              </Button>
+            )}
+            {bindData.length > 0 && (
+              <Button
+                type="primary"
+                className="primary-btn bind-btn"
+                onClick={() => history.push("/daos")}
+              >
+                View DAOs
+              </Button>
+            )}
+          </div>
         </div>
       )}
       <TonWalletConnect />

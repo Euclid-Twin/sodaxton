@@ -1,3 +1,4 @@
+import "./index.less";
 import {
   RemoteConnectPersistance,
   TonhubConnectProvider,
@@ -84,7 +85,9 @@ function _TonConnecterInternal(props: any) {
       )}
       {isConnected && (
         <div style={{ marginTop: "20px" }}>
-          <Button onClick={handleLogout}>Logout</Button>
+          <Button className="default-btn logout-btn" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
       )}
     </>
@@ -94,35 +97,38 @@ function _TonConnecterInternal(props: any) {
 function TonConnect() {
   const connect = useTonhubConnect();
 
-  if (connect.state.type === "initing") {
-    return <span>Waiting for session</span>;
-  }
-  if (connect.state.type === "pending") {
-    return (
-      <div>
-        {isMobile() && (
-          <button
-            onClick={() => {
-              // @ts-ignore
-              window.location.href = connect.state.link.replace(
-                "ton://",
-                "https://tonhub.com/"
-              );
-            }}
-          >
-            Open Tonhub Wallet{" "}
-          </button>
-        )}
-        {!isMobile() && (
-          <div style={{ fontSize: "18px" }}>
-            Scan with your mobile tonhub wallet:
-            <br />
-            <br />
-            <QRCode value={connect.state.link} />
-          </div>
-        )}
-      </div>
-    );
-  }
-  return <></>;
+  return (
+    <div className="login-container">
+      <h1 className="title">Welcome to Soton</h1>
+      {connect.state.type === "initing" && (
+        <span className="text-tip">Waiting for session</span>
+      )}
+      {connect.state.type === "pending" && (
+        <div className="login-content">
+          {isMobile() && (
+            <Button
+              className="primary-btn login-mobile-btn"
+              onClick={() => {
+                // @ts-ignore
+                window.location.href = connect.state.link.replace(
+                  "ton://",
+                  "https://tonhub.com/"
+                );
+              }}
+            >
+              Open Tonhub Wallet{" "}
+            </Button>
+          )}
+          {!isMobile() && (
+            <div className="login-pc">
+              <div className="login-qrcode">
+                <QRCode value={connect.state.link} />
+              </div>
+              <p className="text-tip">Scan with your mobile tonhub wallet:</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

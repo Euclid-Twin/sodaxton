@@ -1,8 +1,57 @@
 .home-container {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 110px;
+  .text-tip {
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    /* identical to box height */
+
+    text-align: center;
+
+    color: #8f92a1;
+
+    mix-blend-mode: normal;
+    opacity: 0.6;
+    margin-top: 8px;
+    margin-bottom: 13px;
+  }
   .address-display {
-    width: 100%;
-    word-break: break-all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    > span {
+      font-family: "Poppins";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 24px;
+      /* identical to box height */
+
+      text-align: center;
+
+      color: #19163d;
+      margin-right: 3px;
+    }
+    > img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  }
+  .bind-addr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 80px;
+    .bind-btn {
+      width: 273px;
+      margin-bottom: 16px;
+    }
   }
   .navs {
     margin-top: 20px;
