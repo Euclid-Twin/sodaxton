@@ -177,10 +177,10 @@ export default (props: IProps) => {
                   <Button
                     type="primary"
                     onClick={handleVoteSubmit}
-                    className="vote-btn"
+                    className="primary-btn vote-btn"
                     loading={submitting}
                   >
-                    Vote now
+                    Vote
                   </Button>
                   <Tooltip title="Your vote can not be changed.">
                     <ExclamationCircleOutlined />
