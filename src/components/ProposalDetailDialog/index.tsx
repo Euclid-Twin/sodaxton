@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import styles from "./index.less";
+import "./index.less";
 import { Button, Modal, Radio, Space, message, Tooltip } from "antd";
 import IconClose from "@/assets/images/icon-close.png";
 import ProposalStatus from "../ProposalItemStatus";
@@ -122,37 +122,36 @@ export default (props: IProps) => {
       className="common-modal"
       visible={show}
       closable={false}
-      width={720}
+      width={300}
     >
-      <div className={styles["container"]}>
-        <div className={styles["header"]}>
-          <div className={styles["header-left"]}>
-            <p className={styles["end-time"]}>
-              End at {formatTimestamp(detail.endTime, "YYYY-MM-DD HH:mm:ss")}
-            </p>
-            <p className={styles["title"]}>{detail.title}</p>
-            <p className={styles["total-supporter"]}>
-              Votes - {totalSupporters}
-            </p>
+      <div className="container">
+        <div className="header">
+          <p className="end-time">
+            End at {formatTimestamp(detail.endTime, "YYYY-MM-DD HH:mm:ss")}
+          </p>
+          <img src={IconClose} alt="" onClick={() => onClose()} />
+        </div>
+        <div className="header-content">
+          <div className="header-left">
+            <p className="title">{detail.title}</p>
+            <p className="total-supporter">Votes - {totalSupporters}</p>
           </div>
-          <div className={styles["header-right"]}>
-            <img src={IconClose} alt="" onClick={() => onClose()} />
+          <div className="header-right">
             <ProposalStatus status={detail.status} />
           </div>
         </div>
-
-        <div className={styles["divide-line"]}></div>
+        <div className="divide-line"></div>
         <div
-          className={styles["desc"]}
+          className="desc"
           dangerouslySetInnerHTML={{ __html: detail.description }}
         >
           {/* <p>{detail.description}</p> */}
         </div>
-        <div className={styles["vote-submit-results-container"]}>
+        <div className="vote-submit-results-container">
           <ProposalResults items={detail.items} results={detail.results} />
           {isOpen && canVote && (
-            <div className={styles["vote-container"]}>
-              <p className={styles["vote-title"]}>
+            <div className="vote-container">
+              <p className="vote-title">
                 {voted ? "Your vote" : "Cast your vote"}
               </p>
               <Radio.Group
@@ -178,7 +177,7 @@ export default (props: IProps) => {
                   <Button
                     type="primary"
                     onClick={handleVoteSubmit}
-                    className={styles["vote-btn"]}
+                    className="vote-btn"
                     loading={submitting}
                   >
                     Vote now

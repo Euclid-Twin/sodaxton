@@ -101,7 +101,7 @@ export default () => {
           <p>Proposals</p>
           <Button
             type="primary"
-            className="btn-new-proposal"
+            className="primary-btn btn-new-proposal"
             onClick={() => history.push("/proposals/create")}
             disabled={!inDao}
           >
@@ -112,6 +112,7 @@ export default () => {
           {list.map((item) => (
             <div className="proposal-detail" onClick={() => setProposal(item)}>
               <p className="proposal-title">{item.title}</p>
+              <img src="/icon-detail-arrow.svg" alt="" />
             </div>
           ))}
         </div>

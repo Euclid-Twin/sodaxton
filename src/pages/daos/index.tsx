@@ -37,20 +37,27 @@ export default () => {
               className="dao-item"
               onClick={() => history.push(`/daos/${item.id}`)}
             >
-              <img src={item.image} alt="" />
+              <img className="dao-logo" src={item.image} alt="" />
               <span>{item.name}</span>
+              <img
+                src="/icon-detail-arrow.svg"
+                alt=""
+                className="detail-arrow"
+              />
             </div>
           </li>
         ))}
       </ul>
-      <Pagination
-        total={total}
-        pageSize={PAGE_SIZE}
-        onChange={handleChangePage}
-        current={page}
-        showSizeChanger={false}
-        size="small"
-      />
+      <div className="daos-pagination">
+        <Pagination
+          total={total}
+          pageSize={PAGE_SIZE}
+          onChange={handleChangePage}
+          current={page}
+          showSizeChanger={false}
+          size="small"
+        />
+      </div>
     </div>
   );
 };

@@ -9,7 +9,7 @@ export default () => {
       onClick={() => history.goBack()}
       style={{ borderRadius: 5 }}
     >
-      Back
+      <img src="/icon-back.svg" alt="" />
     </Button>
   );
 };

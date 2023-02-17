@@ -115,7 +115,7 @@ export default () => {
         <div className="form-left">
           <div className="banner">
             <img src={currentDao?.image} alt="banner" />
-            <p>{currentDao?.name}</p>
+            <p>{currentDao?.name || "test meme dao"}</p>
           </div>
           <div className="form-left-content">
             <Form.Item
@@ -222,7 +222,10 @@ export default () => {
               },
             ]}
           >
-            <Select options={VoterBallotOptions} />
+            <Select
+              options={VoterBallotOptions}
+              className="proposal-form-selector"
+            />
           </Form.Item>
           <Form.Item
             label="Voting Option(s)*"
@@ -253,21 +256,21 @@ export default () => {
       </Form>
       <div className="proposal-footer-btns">
         <Button
-          type="primary"
-          className="btn-create"
-          onClick={handleCreate}
-          loading={submitting}
-        >
-          Create
-        </Button>
-        <Button
           type="default"
-          className="btn-cancel"
+          className="default-btn btn-cancel"
           onClick={() => {
             history.goBack();
           }}
         >
           Cancel
+        </Button>
+        <Button
+          type="primary"
+          className="primary-btn btn-create"
+          onClick={handleCreate}
+          loading={submitting}
+        >
+          Create
         </Button>
       </div>
     </div>

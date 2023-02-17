@@ -3,21 +3,46 @@
   list-style: none;
   margin-bottom: 20px;
   .dao-item {
-    border: 1px solid #ccc;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: #ffffff;
+    /* ✨ Styles/Card shadow 2 */
+
+    box-shadow: 0px 4px 10px rgba(56, 68, 251, 0.08);
+    border-radius: 12px;
     cursor: pointer;
     :hover {
       background-color: #ccc;
     }
-    > img {
+    > .dao-logo {
       width: 80px;
       height: 80px;
-      margin-right: 10px;
+      margin-right: 12px;
+      border-radius: 24px;
     }
     > span {
+      font-weight: 500;
       font-size: 16px;
+      line-height: 24px;
+      overflow: hidden;
+
+      word-break: break-all;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: #19163d;
+      margin-right: 24px;
+    }
+    > .detail-arrow {
+      position: absolute;
+      right: 12px;
     }
   }
+}
+.daos-pagination {
+  display: flex;
+  justify-content: flex-end;
 }

@@ -8,7 +8,7 @@ interface IProps {
 
 export default (props: IProps) => {
   const { items = [], results = [] } = props;
-  const ProgressColors = ["#9D5FE9", "#F8C35D"];
+  const ProgressColors = ["#302CFF", "#F8C35D"];
 
   const percents = useMemo(() => {
     const total = results.reduce((a, b) => a + b, 0);

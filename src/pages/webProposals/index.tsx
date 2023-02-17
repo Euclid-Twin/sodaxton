@@ -1,4 +1,4 @@
-import "./index.less";
+import "../daoDetail/index.less";
 import { useState, useEffect } from "react";
 import { useLocation, useParams, useModel } from "umi";
 import {

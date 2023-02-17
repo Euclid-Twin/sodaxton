@@ -48,6 +48,7 @@ export default (props?: IProps) => {
       </ul>
       <div className="items-input">
         <Input
+          className="dao-form-input"
           value={inputVal}
           onChange={(e) => {
             const value = e.target.value;
@@ -64,6 +65,8 @@ export default (props?: IProps) => {
         <Button
           type="primary"
           shape="circle"
+          className="btn-save"
+          size="small"
           icon={<CheckOutlined />}
           onClick={handleSave}
         />
