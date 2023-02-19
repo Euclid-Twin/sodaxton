@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./index.less";
 import {
   Button,
@@ -41,7 +41,7 @@ const VoterBallotOptions = [
 export default () => {
   const { currentDao, address } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
-
+  const [startTime, setStartTime] = useState("");
   const [form] = Form.useForm();
 
   const handleCreate = async () => {
@@ -52,8 +52,11 @@ export default () => {
     try {
       setSubmitting(true);
       const values = await form.validateFields();
-      const startTime = values.period[0].valueOf();
-      const endTime = values.period[1].valueOf();
+      // const startTime = values.period[0].valueOf();
+      // const endTime = values.period[1].valueOf();
+      const startTime = values.startTime.valueOf();
+      const endTime = values.endTime.valueOf();
+      console.log();
       const params = {
         creator: address,
         snapshotBlock: 0,
@@ -99,6 +102,7 @@ export default () => {
     // Can not select days before today and today
     return current && current < moment().endOf("day");
   };
+
   const getSnapShotBlockheight = (startTimeMilliseconds: number) => {};
   return (
     <div className="page-container new-proposal-container">
@@ -159,7 +163,7 @@ export default () => {
           </div>
         </div>
         <div className="form-right">
-          <Form.Item
+          {/* <Form.Item
             label="Period*"
             name="period"
             rules={[
@@ -184,8 +188,31 @@ export default () => {
                 }
               }}
             />
-          </Form.Item>
+          </Form.Item> */}
 
+          <Form.Item
+            label="Period*"
+            name="startTime"
+            rules={[{ required: true, message: "Start date is required" }]}
+          >
+            <DatePicker
+              showTime
+              placeholder="Start date"
+              disabledDate={disabledDate}
+              className="proposal-date-picker"
+            />
+          </Form.Item>
+          <Form.Item
+            name="endTime"
+            rules={[{ required: true, message: "End date is required" }]}
+          >
+            <DatePicker
+              showTime
+              placeholder="End date"
+              disabledDate={disabledDate}
+              className="proposal-date-picker"
+            />
+          </Form.Item>
           <Form.Item
             label={
               <p className="label-ballot-threshold">

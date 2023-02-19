@@ -64,11 +64,14 @@ export default () => {
       fetchProposalPermission();
     }
   }, [currentDao, address]);
+
   useEffect(() => {
     if (id) {
       fetchDaoDetail(id);
-      fetchProposalList(id);
     }
+  }, [id]);
+  useEffect(() => {
+    fetchProposalList(id);
   }, [page]);
 
   const handleChangePage = (page: number) => {
