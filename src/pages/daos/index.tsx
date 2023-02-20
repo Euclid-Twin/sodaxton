@@ -14,7 +14,7 @@ export default () => {
     const res = await getDaoList({
       offset: (_page - 1) * PAGE_SIZE,
       limit: PAGE_SIZE,
-      //   address,
+      address,
     });
     setDaos(res.data);
     setTotal(res.total);
@@ -29,7 +29,7 @@ export default () => {
   return (
     <div className="page-container daos-container">
       <Back />
-      <h1 className="page-title">Daos</h1>
+      <h1 className="page-title">DAOs</h1>
       <ul className="dao-list">
         {daos.map((item) => (
           <li>
