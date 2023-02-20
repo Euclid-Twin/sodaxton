@@ -53,6 +53,15 @@ export default function HomePage() {
     };
     window.Telegram.WebApp.sendData(JSON.stringify(msg));
   };
+  const handleUnbind = () => {
+    const msg = {
+      type: "unbind_addr",
+      data: {
+        address: address,
+      },
+    };
+    window.Telegram.WebApp.sendData(JSON.stringify(msg));
+  };
 
   const addressDisplay = useMemo(() => {
     if (address) {
@@ -83,6 +92,15 @@ export default function HomePage() {
                 onClick={handleBind}
               >
                 Bind your address with Telegram
+              </Button>
+            )}
+            {bindData.length > 0 && (
+              <Button
+                type="primary"
+                className="default-btn bind-btn"
+                onClick={handleUnbind}
+              >
+                Unbind your address with Telegram
               </Button>
             )}
             {bindData.length > 0 && (
