@@ -2,8 +2,16 @@ import { defineConfig } from "umi";
 
 export default defineConfig({
   define: {
-    "process.env.CHAIN_ENV": "TONtest",
-    "process.env.TON_SERVER": "https://soton.sonet.one",
+    "process.env.CHAIN_ENV":
+      process.env.APP_ENV === "prod" ? "TONmain" : "TONtest",
+    "process.env.TON_SERVER":
+      process.env.APP_ENV === "prod"
+        ? "https://soton.sonet.one"
+        : "https://soton-test.sonet.one",
+    "process.env.API_HOST":
+      process.env.APP_ENV === "test"
+        ? "https://apiv2-test.platwin.io/api/v1"
+        : "https://apiv2-test.platwin.io/api/v1",
   },
   headScripts: ["https://telegram.org/js/telegram-web-app.js"],
   request: {},
