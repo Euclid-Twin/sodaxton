@@ -62,11 +62,12 @@ export default () => {
 
 function _TonConnecterInternal(props: any) {
   const connect: any = useTonhubConnect();
-  const { setAddress } = useModel("app");
+  const { setAddress, address } = useModel("app");
   const isConnected = connect.state.type === "online";
   console.log(connect.state.type);
   useEffect(() => {
-    if (connect.state?.walletConfig?.address) {
+    const addr = connect.state?.walletConfig?.address;
+    if (addr && addr !== address) {
       setAddress(connect.state?.walletConfig?.address);
     }
   }, [connect]);

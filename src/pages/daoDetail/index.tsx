@@ -9,7 +9,7 @@ import {
 } from "@/api/proposal";
 import { CHAIN_NAME } from "@/utils/constant";
 import { formatTimestamp } from "@/utils";
-import { Pagination, Button, Modal } from "antd";
+import { Pagination, Button, Modal, Spin } from "antd";
 import { history } from "umi";
 import ProposalItemStatus from "@/components/ProposalItemStatus";
 import ProposalResults from "@/components/ProposalResults";
@@ -25,6 +25,7 @@ export default () => {
   const [list, setList] = useState<Proposal[]>([]);
   const [inDao, setInDao] = useState(false);
   const [proposal, setProposal] = useState<Proposal>();
+  const [loading, setLoading] = useState(false);
 
   const fetchDaoDetail = async (daoId: string) => {
     const collectionId = daoId;
@@ -39,15 +40,22 @@ export default () => {
   };
 
   const fetchProposalList = async (daoId: string) => {
-    const listResp = await getProposalList({
-      dao: daoId,
-      page,
-      gap: PAGE_SIZE,
-      chain_name: CHAIN_NAME,
-    });
-    const list = listResp.data;
-    setTotal(listResp.total);
-    setList(list);
+    try {
+      setLoading(true);
+      const listResp = await getProposalList({
+        dao: daoId,
+        page,
+        gap: PAGE_SIZE,
+        chain_name: CHAIN_NAME,
+      });
+      const list = listResp.data;
+      setTotal(listResp.total);
+      setList(list);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchProposalPermission = async () => {
@@ -111,14 +119,19 @@ export default () => {
             New Proposal
           </Button>
         </div>
-        <div className="proposal-list">
-          {list.map((item) => (
-            <div className="proposal-detail" onClick={() => setProposal(item)}>
-              <p className="proposal-title">{item.title}</p>
-              <img src="/icon-detail-arrow.svg" alt="" />
-            </div>
-          ))}
-        </div>
+        <Spin spinning={loading}>
+          <div className="proposal-list">
+            {list.map((item) => (
+              <div
+                className="proposal-detail"
+                onClick={() => setProposal(item)}
+              >
+                <p className="proposal-title">{item.title}</p>
+                <img src="/icon-detail-arrow.svg" alt="" />
+              </div>
+            ))}
+          </div>
+        </Spin>
         <div className="list-pagination">
           <Pagination
             total={total}
