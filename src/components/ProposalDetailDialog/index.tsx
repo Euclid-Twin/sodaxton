@@ -134,7 +134,7 @@ export default (props: IProps) => {
         <div className="header-content">
           <div className="header-left">
             <p className="title">{detail.title}</p>
-            <p className="total-supporter">Votes - {totalSupporters}</p>
+            <p className="total-supporter">Vote(s) - {totalSupporters}</p>
           </div>
           <div className="header-right">
             <ProposalStatus status={detail.status} />
