@@ -44,7 +44,7 @@ export default () => {
     <div>
       <QueryClientProvider client={queryClient}>
         <TonhubConnectProvider
-          network="mainnet"
+          network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
           url="https://ton.org/"
           name="TON TWA BOT"
           debug={false}
@@ -97,7 +97,7 @@ function _TonConnecterInternal(props: any) {
 
 function TonConnect() {
   const connect = useTonhubConnect();
-
+  console.log("link: ", connect.state.link);
   return (
     <div className="login-container">
       <h1 className="title">Welcome to Soton</h1>
@@ -112,12 +112,15 @@ function TonConnect() {
               onClick={() => {
                 // @ts-ignore
                 window.location.href = connect.state.link.replace(
-                  "ton://",
-                  "https://tonhub.com/"
+                  process.env.APP_ENV === "prod" ? "ton://" : "ton-test://",
+                  process.env.APP_ENV === "prod"
+                    ? "https://tonhub.com/"
+                    : "https://test.tonhub.com/"
                 );
               }}
             >
-              Open Tonhub Wallet{" "}
+              Open {process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"}{" "}
+              Wallet{" "}
             </Button>
           )}
           {!isMobile() && (
@@ -125,7 +128,10 @@ function TonConnect() {
               <div className="login-qrcode">
                 <QRCode value={connect.state.link} />
               </div>
-              <p className="text-tip">Scan with your mobile tonhub wallet:</p>
+              <p className="text-tip">
+                Scan with your mobile{" "}
+                {process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"} wallet:
+              </p>
             </div>
           )}
         </div>

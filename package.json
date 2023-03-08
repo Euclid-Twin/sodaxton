@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "start": "umi dev",
+    "start:prod": "cross-env APP_ENV=prod umi dev",
     "build:test": "cross-env APP_ENV=test umi build",
     "build:prod": "cross-env APP_ENV=prod umi build",
     "postinstall": "umi generate tmp",
