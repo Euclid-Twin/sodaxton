@@ -97,7 +97,7 @@ function _TonConnecterInternal(props: any) {
 
 function TonConnect() {
   const connect = useTonhubConnect();
-  console.log("link: ", connect.state.link);
+  // console.log("link: ", connect.state.link);
   return (
     <div className="login-container">
       <h1 className="title">Welcome to Soton</h1>

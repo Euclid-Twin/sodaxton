@@ -2,6 +2,7 @@ import { defineConfig } from "umi";
 
 export default defineConfig({
   define: {
+    "process.env.APP_ENV": process.env.APP_ENV,
     "process.env.CHAIN_ENV":
       process.env.APP_ENV === "prod" ? "TONmain" : "TONtest",
     "process.env.TON_SERVER":
