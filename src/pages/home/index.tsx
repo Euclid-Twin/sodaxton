@@ -11,12 +11,15 @@ import { useModel, Link, history } from "umi";
 import TonWalletConnect from "@/components/TonWalletConnect";
 import IconCopy from "@/assets/images/copy.svg";
 import { fallbackCopyTextToClipboard } from "@/utils";
+import CollectionTx from "@/components/Transactoin";
 console.log("tonserver: ", process.env.TON_SERVER);
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
-  const { address } = useModel("app");
+  const { address, setAddress } = useModel("app");
   const [initData, setInitData] = useState();
   const [dataUnsafe, setDataUnsafe] = useState();
+  const connect = useTonhubConnect();
+  const isConnected = connect.state.type === "online";
   // const address = useMemo(() => {
   //   return connect.state?.walletConfig?.address;
   // }, [connect]);
@@ -69,6 +72,11 @@ export default function HomePage() {
     }
   }, [address]);
 
+  const handleLogout = () => {
+    connect.api.revoke();
+    setAddress("");
+  };
+
   return (
     <div className="home-container">
       {address && (
@@ -115,7 +123,22 @@ export default function HomePage() {
           </div>
         </div>
       )}
-      <TonWalletConnect />
+      <CollectionTx />
+      {isConnected && (
+        <div
+          style={{
+            marginTop: "20px",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Button className="default-btn logout-btn" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+      )}
+      {/* <TonWalletConnect /> */}
     </div>
   );
 }
