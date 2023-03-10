@@ -9,7 +9,7 @@ import {
   getUserVoteInfo,
   getProposalPermission,
 } from "@/api/proposal";
-import { ProposalStatusEnum } from "@/api/apis";
+import { ProposalStatusEnum, getUserVotePermission } from "@/api/apis";
 import { formatTimestamp, sha3 } from "@/utils";
 // import { useDaoModel, useWalletModel } from '@/models';
 import { useModel } from "umi";
@@ -105,11 +105,13 @@ export default (props: IProps) => {
           // public dao
           setCanVote(true);
         } else {
-          const res = await getProposalPermission(
-            currentDao?.id,
-            address,
-            CHAIN_NAME
-          );
+          const res = await getUserVotePermission({
+            collection_id: currentDao?.id,
+            voter_type: detail.voteType,
+            voter: address,
+            chain_name: CHAIN_NAME,
+            proposal_id: detail.id,
+          });
           setCanVote(res);
         }
       }

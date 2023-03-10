@@ -306,3 +306,21 @@ export const getCollectionDaoByCollectionId = async (params: {
   if (res.error) return null;
   return res.data || null;
 };
+
+export const getUserVotePermission = async (params: {
+  voter_type: number;
+  collection_id: string | number;
+  voter: string;
+  chain_name: string;
+  proposal_id: string;
+}) => {
+  const url = `${API_HOST}/proposal/votes/num`;
+  const res = await httpRequest({ url, params, type: HttpRequestType.GET });
+  console.debug("getUserVotePermission: ", res);
+  const { data } = res;
+  if ((typeof data === "number" && data > 0) || (data && data.votes > 0)) {
+    return true;
+  } else {
+    return false;
+  }
+};

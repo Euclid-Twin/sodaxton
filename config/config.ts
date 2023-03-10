@@ -16,7 +16,7 @@ export default defineConfig({
     "process.env.APP_URL":
       process.env.APP_ENV === "prod"
         ? "https://twa.soton.sonet.one"
-        : "https://tonhub-test.sonet.one/",
+        : "https://twa.soton-test.sonet.one/",
   },
   headScripts: ["https://telegram.org/js/telegram-web-app.js"],
   title: "Soton TWA Bot",
