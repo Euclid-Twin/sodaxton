@@ -30,7 +30,7 @@ export default () => {
       //payload: "....", // Optional serialized to base64 string payload cell
     };
     const response = await connect.api.requestTransaction(request);
-    alert(JSON.stringify(response));
+    alert("tx resp:", JSON.stringify(response));
     console.log("tx resp: ", response);
     if (response.type === "rejected") {
       // Handle rejection
@@ -70,7 +70,7 @@ export default () => {
     };
     const response = await connect.api.requestSign(request);
     console.log("sign resp: ", response);
-    alert(JSON.stringify(response));
+    alert("sig resp: ", JSON.stringify(response));
     if (response.type === "rejected") {
       // Handle rejection
     } else if (response.type === "expired") {
@@ -95,7 +95,7 @@ export default () => {
 
   return (
     <div className="tx-container">
-      <Button onClick={sign}>Create collection</Button>
+      <Button onClick={collectionCreate}>Create collection</Button>
       {/* <QRCode value={connect.state.link || ""} /> */}
     </div>
   );
