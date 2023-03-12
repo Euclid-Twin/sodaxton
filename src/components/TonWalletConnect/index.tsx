@@ -39,14 +39,15 @@ export default () => {
     }
     wasPendingConnectionChecked = true;
   }, [connectionState]);
-
+  console.log("process.env.APP_URL: ", process.env.APP_URL);
   return (
     <div>
       <QueryClientProvider client={queryClient}>
         <TonhubConnectProvider
           network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
-          url="https://ton.org/"
-          name="TON TWA BOT"
+          url={process.env.APP_URL!}
+          // url="https://ton.org"
+          name="Soton TWA BOT"
           debug={false}
           connectionState={connectionState}
           setConnectionState={(s) => {
