@@ -67,9 +67,10 @@ export default (props: any) => {
       <QueryClientProvider client={queryClient}>
         <TonhubConnectProvider
           network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
-          url="https://ton.org/"
-          name="TON TWA BOT"
-          debug={false}
+          url={"https://tonhub-test.sonet.one" || process.env.APP_URL!}
+          // url="https://ton.org"
+          name="Soton TWA BOT"
+          debug={true}
           connectionState={connectionState}
           setConnectionState={(s) => {
             setConnectionState(s as RemoteConnectPersistance);

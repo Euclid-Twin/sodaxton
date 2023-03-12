@@ -22,14 +22,15 @@ export default () => {
       seed: connect.state.seed, // Session Seed
       //@ts-ignore
       appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-      to: "EQCkR1cGmnsE45N4K0otPl5EnxnRakmGqeJUNua5fkWhales", //tx.to, // Destination
-      value: "10000000000", // toNano(tx.value).toString(), // Amount in nano-tons
+      to: tx.to, // Destination
+      value: toNano(tx.value).toString(), // Amount in nano-tons
       timeout: 5 * 60 * 1000, // 5 minut timeout
-      //stateInit: "", //tx.state_init, // Optional serialized to base64 string state_init cell
+      stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
       text: "Create Collection", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
       //payload: "....", // Optional serialized to base64 string payload cell
     };
     const response = await connect.api.requestTransaction(request);
+    alert(JSON.stringify(response));
     console.log("tx resp: ", response);
     if (response.type === "rejected") {
       // Handle rejection
@@ -69,6 +70,7 @@ export default () => {
     };
     const response = await connect.api.requestSign(request);
     console.log("sign resp: ", response);
+    alert(JSON.stringify(response));
     if (response.type === "rejected") {
       // Handle rejection
     } else if (response.type === "expired") {
@@ -79,6 +81,7 @@ export default () => {
       // Handle successful transaction
       const signature = response.signature;
       console.log("sig:", signature);
+
       // You can check signature on the backend with TonhubConnector.verifySignatureResponse
       //   let correctSignature = TonhubConnector.verifySignatureResponse({
       //     signature: signature,
@@ -92,7 +95,7 @@ export default () => {
 
   return (
     <div className="tx-container">
-      <Button onClick={collectionCreate}>Create collection</Button>
+      <Button onClick={sign}>Create collection</Button>
       {/* <QRCode value={connect.state.link || ""} /> */}
     </div>
   );
