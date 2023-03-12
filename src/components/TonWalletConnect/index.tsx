@@ -44,7 +44,7 @@ export default () => {
     <div>
       <QueryClientProvider client={queryClient}>
         <TonhubConnectProvider
-          network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
+          network={process.env.APP_ENV === "prod" ? "mainnet" : "sandbox"}
           url={process.env.APP_URL!}
           // url="https://ton.org"
           name="Soton TWA BOT"
