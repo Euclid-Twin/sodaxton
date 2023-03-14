@@ -81,7 +81,7 @@ export default function HomePage() {
     <div className="home-container">
       {address && (
         <div className="home-content">
-          <h1 className="page-title">Welcome to Soton</h1>
+          <h1 className="page-title home-title">Welcome to Soton</h1>
 
           <p className="text-tip">Your address: </p>
           <div className="address-display">
@@ -120,10 +120,18 @@ export default function HomePage() {
                 View DAOs
               </Button>
             )}
+            {bindData.length > 0 && (
+              <Button
+                type="primary"
+                className="primary-btn bind-btn"
+                onClick={() => history.push("/collections")}
+              >
+                Collections
+              </Button>
+            )}
           </div>
         </div>
       )}
-      <CollectionTx />
       {isConnected && (
         <div
           style={{

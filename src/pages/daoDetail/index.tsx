@@ -88,7 +88,9 @@ export default () => {
 
   const handleDetailDialogClose = (updatedProposalId?: string) => {
     setProposal(undefined);
-    fetchProposalList(currentDao!.id);
+    if (currentDao?.id) {
+      fetchProposalList(currentDao!.id);
+    }
   };
 
   return (
