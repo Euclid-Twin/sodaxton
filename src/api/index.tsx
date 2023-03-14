@@ -1,6 +1,12 @@
 import * as Api from "./apis";
 import { Collection, NFT } from "./apis";
 import { CHAIN_NAME } from "@/utils/constant";
+import {
+  HttpRequestType,
+  httpRequest,
+  API_HOST,
+  SUCCESS_CODE,
+} from "@/utils/request";
 export interface CollectionDao {
   collection: Collection;
   dao: DaoItem;
@@ -132,4 +138,29 @@ export const getBindResult = async (params: {
     });
   }
   return res;
+};
+
+export const genNFMintTx = async (params: any) => {
+  const url = `${API_HOST}/nft/item/gen`;
+  const data = {
+    chain_name: CHAIN_NAME,
+    owner: params.owner,
+    collection: {
+      name: params.collection.name,
+      addr: params.collection.address,
+    },
+    metadata: {
+      name: params.name,
+      image: params.image,
+      description: params.description,
+      attributes: params.attributes,
+    },
+  };
+  const res = await httpRequest({
+    url,
+    params: data,
+    type: HttpRequestType.POST,
+  });
+  console.log("[gen-collection-tx]: ", res);
+  return res.data;
 };
