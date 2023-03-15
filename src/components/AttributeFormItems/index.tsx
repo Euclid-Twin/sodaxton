@@ -17,7 +17,7 @@ export default (props?: IProps) => {
   const { value = [], onChange, ...rest } = props || {};
   const [inputVal, setInputVal] = useState("");
   const [inputKey, setInputKey] = useState("");
-
+  const [showInput, setShowInput] = useState(false);
   const [error, setError] = useState("");
 
   const handleDelete = (index: number) => {
@@ -32,10 +32,11 @@ export default (props?: IProps) => {
     onChange?.(_values);
     setInputVal("");
     setInputKey("");
+    setShowInput(false);
   };
 
   return (
-    <div className="proposal-form-items">
+    <div className="attribute-form-items">
       <ul className="items-list">
         {value.map((item, index) => (
           <li key={index}>
@@ -45,15 +46,24 @@ export default (props?: IProps) => {
             <Button
               type="primary"
               shape="circle"
+              size="small"
               icon={<CloseOutlined />}
               onClick={() => handleDelete(index)}
             />
           </li>
         ))}
       </ul>
-      <div className="items-input">
-        <div className="attr-item">
-          <label htmlFor="">Trait Type</label>
+      {!showInput && (
+        <Button
+          type="default"
+          onClick={() => setShowInput(true)}
+          className="btn-add-attr"
+        >
+          Add attribute
+        </Button>
+      )}
+      {showInput && (
+        <div className="items-input">
           <Input
             className="dao-form-input"
             placeholder="Enter trait type"
@@ -64,7 +74,7 @@ export default (props?: IProps) => {
             }}
             status={error ? "error" : ""}
           />
-          <label htmlFor="">Value</label>
+
           <Input
             className="dao-form-input"
             placeholder="Enter trait value"
@@ -75,17 +85,18 @@ export default (props?: IProps) => {
             }}
             status={error ? "error" : ""}
           />
+
+          <Button
+            type="primary"
+            shape="circle"
+            className="btn-save"
+            size="small"
+            icon={<CheckOutlined />}
+            onClick={handleSave}
+          />
+          {error && <p className="items-error-text">{error}</p>}
         </div>
-        <Button
-          type="primary"
-          shape="circle"
-          className="btn-save"
-          size="small"
-          icon={<CheckOutlined />}
-          onClick={handleSave}
-        />
-        {error && <p className="items-error-text">{error}</p>}
-      </div>
+      )}
     </div>
   );
 };
