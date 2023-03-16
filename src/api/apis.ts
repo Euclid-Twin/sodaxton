@@ -4,6 +4,7 @@ import {
   API_HOST,
   SUCCESS_CODE,
 } from "@/utils/request";
+import { CHAIN_NAME } from "@/utils/constant";
 export enum AssetType {
   FT = 0,
   PFT = 1,
@@ -252,6 +253,7 @@ export interface IBind1Params {
   sig: string;
   platform: string;
   chain_name: string;
+  pubkey: string;
 }
 export const bind1WithWeb3Proof = async (params: IBind1Params) => {
   const url = `${API_HOST}/bind-addr`;
@@ -323,4 +325,16 @@ export const getUserVotePermission = async (params: {
   } else {
     return false;
   }
+};
+
+export const getCreatedCollectionList = async (params: {
+  creator: string;
+  page?: number;
+  gap?: number;
+  chain_name?: string;
+}) => {
+  const url = `${API_HOST}/collection/created-by`;
+  params.chain_name = CHAIN_NAME;
+  const res = await httpRequest({ url, params, type: HttpRequestType.GET });
+  return res;
 };

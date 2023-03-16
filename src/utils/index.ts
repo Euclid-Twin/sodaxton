@@ -37,3 +37,16 @@ export function fallbackCopyTextToClipboard(text: string) {
 
   document.body.removeChild(textArea);
 }
+
+export const getUrl = (uri: string, config?: any): string => {
+  if (!uri) return "";
+  let source: string = uri;
+  if (source.startsWith("http://") || source.startsWith("https://")) {
+    return source;
+  }
+  if (source.startsWith("ipfs://")) {
+    source = source.substring(7);
+  }
+  source = `https://ipfs.io/ipfs/${source}`;
+  return source;
+};

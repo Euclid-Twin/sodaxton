@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTonhubConnect } from "react-ton-x";
 import { useModel } from "umi";
-import { toNano } from "ton";
+import { toNano, beginCellna } from "ton";
 import {
   TonhubConnector,
   TonhubCreatedSession,
@@ -9,12 +9,13 @@ import {
   TonhubWalletConfig,
   TonhubTransactionRequest,
   TonhubTransactionResponse,
+  verifySignatureResponse,
 } from "ton-x";
 import QRCode from "react-qr-code";
 import { Button } from "antd";
 const TonWeb = require("tonweb");
 const { NftItem, NftCollection } = TonWeb.token.nft;
-import { genNFMintTx } from "@/api";
+
 export default () => {
   const { address } = useModel("app");
   const [resp, setResp] = useState("");
@@ -156,17 +157,19 @@ export default () => {
   };
 
   const sign = async () => {
+    const platform = "Telegram";
+    const tid = "1842871751";
     const payloadToSign = Buffer.concat([
       Buffer.from([0, 0, 0, 0]),
-      Buffer.from("Some random string"),
+      Buffer.from(platform + tid),
     ]);
     const payload = beginCell()
       .storeBuffer(payloadToSign)
       .endCell()
       .toBoc({ idx: false })
       .toString("base64");
-    const text = "Please, sign our terms or service and privacy policy";
-
+    // const text = "Please, sign our terms or service and privacy policy";
+    const text = "Please sign message";
     // Request body
     const request = {
       //@ts-ignore
@@ -174,12 +177,13 @@ export default () => {
       //@ts-ignore
       appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
       timeout: 5 * 60 * 1000, // 5 minut timeout
-      text: "Hello world", // Text to sign, presented to the user.
+      text: text, // Text to sign, presented to the user.
       payload: payload, // Optional serialized to base64 string payload cell
     };
     const response = await connect.api.requestSign(request);
     console.log("sign resp: ", response);
-    alert(JSON.stringify(response));
+    console.log(connect.state.walletConfig);
+
     if (response.type === "rejected") {
       // Handle rejection
     } else if (response.type === "expired") {
@@ -190,13 +194,18 @@ export default () => {
       // Handle successful transaction
       const signature = response.signature;
       console.log("sig:", signature);
+      console.log("text: ", text);
+      console.log("payload: ", payload);
 
       // You can check signature on the backend with TonhubConnector.verifySignatureResponse
-      //   let correctSignature = TonhubConnector.verifySignatureResponse({
-      //     signature: signature,
-      //     //@ts-ignore
-      //     config: connect.state.walletConfig,
-      //   });
+      let correctSignature = verifySignatureResponse({
+        signature: signature,
+        //@ts-ignore
+        config: connect.state.walletConfig,
+        text: text,
+        payload,
+      });
+      console.log("correctSignature: ", correctSignature);
     } else {
       throw new Error("Impossible");
     }
@@ -206,6 +215,7 @@ export default () => {
     <div className="tx-container">
       <Button onClick={collectionCreate}>Create collection</Button>
       <Button onClick={mintNFT}>Mint</Button>
+      <Button onClick={sign}>Sign</Button>
 
       {link && <QRCode value={link} />}
       <p>Resp: </p>

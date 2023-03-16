@@ -14,7 +14,7 @@ export const SUCCESS_CODE = 0;
 
 export async function httpRequest(req: any) {
   const response: any = {};
-  const { url, params, type } = req;
+  const { url, params, type, requestType } = req;
 
   try {
     let res: any;
@@ -22,11 +22,14 @@ export async function httpRequest(req: any) {
       res = await request(url, {
         method: "POST",
         data: params,
+        requestType,
+        headers: { authorization: "TG Robot Platwin Soda" },
       });
     } else {
       res = await request(url, {
         method: "GET",
         params,
+        requestType,
       });
     }
     return res;

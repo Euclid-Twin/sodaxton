@@ -4,19 +4,29 @@ import { Pagination, Button, Modal, Spin } from "antd";
 import Back from "@/components/Back";
 import { PAGE_SIZE } from "@/utils/constant";
 import { useModel, history } from "umi";
+import { getCreatedCollectionList } from "@/api/apis";
+import { getUrl } from "@/utils";
 
 export default () => {
   const { address } = useModel("app");
 
-  const [collections, setCollectinos] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const fetchCollections = async (page: number) => {};
+  const fetchCollections = async (page: number) => {
+    if (address) {
+      const res = await getCreatedCollectionList({
+        creator: address,
+        page,
+        gap: PAGE_SIZE,
+      });
+      res.data.forEach((item: any) => (item.image = getUrl(item.image)));
+      setCollections(res.data);
+      setTotal(res.total);
+    }
+  };
 
-  useEffect(() => {
-    fetchCollections(page);
-  }, []);
   const handleChangePage = (newPage: number, pageSize: number | undefined) => {
     setPage(newPage);
     fetchCollections(newPage);
@@ -50,7 +60,11 @@ export default () => {
             <li>
               <div
                 className="collection-item"
-                // onClick={() => history.push(`/daos/${item.id}`)}
+                onClick={() =>
+                  window.open(
+                    `${process.env.GETGEMS_COLLECTION_URL}/${item.addr}`
+                  )
+                }
               >
                 <img className="collection-logo" src={item.image} alt="" />
                 <span>{item.name}</span>

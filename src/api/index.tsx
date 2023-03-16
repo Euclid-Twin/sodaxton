@@ -1,6 +1,6 @@
 import * as Api from "./apis";
 import { Collection, NFT } from "./apis";
-import { CHAIN_NAME } from "@/utils/constant";
+import { CHAIN_NAME, PLATFORM } from "@/utils/constant";
 import {
   HttpRequestType,
   httpRequest,
@@ -97,19 +97,37 @@ export const editDao = async () => {};
 
 export const bind1WithWeb3Proof = async (params: {
   address: string;
-  application: string;
   appid: string;
   sig: string;
-  chain_name: string;
+  pubkey: string;
+  // chain_name: string;
 }) => {
-  const { address, application, appid, sig, chain_name } = params;
+  const { address, appid, sig } = params;
   return Api.bind1WithWeb3Proof({
     addr: address,
-    platform: application,
+    platform: PLATFORM,
     tid: appid,
     sig,
-    chain_name,
+    pubkey,
+    chain_name: CHAIN_NAME,
   });
+};
+
+export const unbind = async (params: {
+  addr: string;
+  tid: string;
+  sig: string;
+  pubkey: string;
+  platform?: string;
+  chain_name?: string;
+}) => {
+  params.platform = PLATFORM;
+  params.chain_name = CHAIN_NAME;
+  const url = `${API_HOST}/unbind-addr`;
+  const res = await httpRequest({ url, params, type: HttpRequestType.POST });
+  console.debug("[core-account] unbindAddr: ", params, res);
+  if (res.error) return false;
+  return true;
 };
 export interface BindInfo {
   address: string;
@@ -140,7 +158,50 @@ export const getBindResult = async (params: {
   return res;
 };
 
-export const genNFMintTx = async (params: any) => {
+export const genCollectionDeployTx = async (params: {
+  owner: string;
+  name: string;
+  image: string;
+  description: string;
+  social_links?: string[];
+}) => {
+  const url = `${API_HOST}/nft/collection/gen`;
+  const data = {
+    chain_name: CHAIN_NAME,
+    owner: params.owner,
+    royalty: 0.1,
+    royalty_address: params.owner,
+    metadata: {
+      name: params.name,
+      image: params.image,
+      cover_image: params.image,
+      description: params.description,
+      social_links: params.social_links || [""],
+    },
+  };
+  const res = await httpRequest({
+    url,
+    params: data,
+    type: HttpRequestType.POST,
+  });
+  console.log("[gen-collection-tx]: ", res);
+  return res.data;
+};
+
+export const genNFTMintTx = async (params: {
+  owner: string;
+  collection: {
+    name: string;
+    address: string;
+  };
+  name: string;
+  description: string;
+  image: string;
+  attributes?: {
+    trait_type: string;
+    value: string;
+  }[];
+}) => {
   const url = `${API_HOST}/nft/item/gen`;
   const data = {
     chain_name: CHAIN_NAME,
@@ -153,7 +214,7 @@ export const genNFMintTx = async (params: any) => {
       name: params.name,
       image: params.image,
       description: params.description,
-      attributes: params.attributes,
+      attributes: params.attributes || [],
     },
   };
   const res = await httpRequest({
@@ -162,5 +223,21 @@ export const genNFMintTx = async (params: any) => {
     type: HttpRequestType.POST,
   });
   console.log("[gen-collection-tx]: ", res);
+  return res.data;
+};
+
+export const uploadFile = async (files: File[]) => {
+  const url = `${API_HOST}/nft/upload-img`;
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append("file", file);
+  }
+  const res = await httpRequest({
+    url,
+    params: formData,
+    type: HttpRequestType.POST,
+    requestType: "form",
+  });
+  console.log("uploadFile: ", res);
   return res.data;
 };

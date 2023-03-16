@@ -21,32 +21,125 @@ import { createProposal } from "@/api/server";
 import { history, useLocation, useModel } from "umi";
 import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
+import { uploadFile, genCollectionDeployTx, genNFTMintTx } from "@/api";
+import { getCreatedCollectionList } from "@/api/apis";
+import { toNano } from "ton";
+import { useTonhubConnect } from "react-ton-x";
 
 export default () => {
   const { address } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
-  const [file, setFile] = useState();
+  const [fileUrl, setFileUrl] = useState("");
   const [imgPreview, setImgPreview] = useState();
-  const [collections, setCollections] = useState([
-    { value: "TestCat", label: "TestCat" },
-  ]);
+  const [collections, setCollections] = useState([]);
+  const connect = useTonhubConnect();
 
   const handleCreate = async () => {
     if (!address) {
-      message.warn("Metamask not found.");
+      message.warn(
+        `Please login with ${
+          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
+        }.`
+      );
       return;
     }
     try {
       setSubmitting(true);
       const values = await form.validateFields();
       console.log("values: ", values);
+      if (!fileUrl) {
+        message.warn("Please select image for your collection.");
+        return;
+      }
+      const collection: any = collections.find(
+        (item: any) => item.value === values.collection
+      );
+      const params = {
+        owner: address,
+        collection: {
+          name: collection!.label,
+          address: collection!.value,
+        },
+        name: values.name,
+        description: values.description,
+        image: fileUrl,
+        attributes: values.attributes,
+      };
+      const tx = await genNFTMintTx(params);
+      const request = {
+        //@ts-ignore
+        seed: connect.state.seed, // Session Seed
+        //@ts-ignore
+        appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+        to: collection.value, // Destination
+        value: toNano(tx.value).toString(), // Amount in nano-tons
+        timeout: 5 * 60 * 1000, // 1 min timeout
+        // stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
+        text: "Mint NFT", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
+        payload: tx.payload, // Optional serialized to base64 string payload cell
+      };
+      Modal.info({
+        title: `Please confirm on ${
+          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
+        }`,
+        content: (
+          <div>
+            <p>
+              {`Please open the ${
+                process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
+              } wallet on your phone and confirm the transaction
+              on the homepage`}
+            </p>
+          </div>
+        ),
+        onOk() {},
+      });
+      const response = await connect.api.requestTransaction(request);
+
+      console.log("tx resp: ", response);
+      if (response.type === "rejected") {
+        // Handle rejection
+        message.warn("Transaction rejected.");
+      } else if (response.type === "expired") {
+        // Handle expiration
+        message.warn("Transaction expired. Please try again.");
+      } else if (response.type === "invalid_session") {
+        // Handle expired or invalid session
+        message.warn(
+          "Transaction or session expired. Please re-login and try again."
+        );
+      } else if (response.type === "success") {
+        // Handle successful transaction
+        message.success("Mint NFT successfully.");
+        history.push("/collections");
+        const externalMessage = response.response; // Signed external message that was sent to the network
+      } else {
+        throw new Error("Impossible");
+      }
       setSubmitting(false);
     } catch (e) {
-      message.error("Create collection failed.");
+      message.error("Mint NFT failed.");
       setSubmitting(false);
     }
   };
+
+  const fetchCollections = async (page: number) => {
+    if (address) {
+      const res = await getCreatedCollectionList({
+        creator: address,
+      });
+      const list = res.data.map((item: any) => ({
+        value: item.addr,
+        label: item.name,
+      }));
+      setCollections(list);
+    }
+  };
+
+  useEffect(() => {
+    fetchCollections(1);
+  }, [address]);
 
   const getBase64 = (file: any) => {
     return new Promise((resolve, reject) => {
@@ -65,10 +158,13 @@ export default () => {
       // setFile(file);
       return false;
     },
-    onChange: (info: any) => {
-      setFile(info.file);
+    onChange: async (info: any) => {
       if (info.file) {
-        getBase64(info.file).then((data) => setImgPreview(data));
+        getBase64(info.file).then((data: any) => setImgPreview(data));
+        const ipfsRes = await uploadFile([info.file]);
+        if (ipfsRes[0]) {
+          setFileUrl(ipfsRes[0]);
+        }
       }
     },
   };
