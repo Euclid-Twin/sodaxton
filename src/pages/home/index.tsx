@@ -133,7 +133,7 @@ export default function HomePage() {
         });
         if (res) {
           message.success(
-            `TON address "${address}" has been bound to your Telegram account.`
+            `TON address "${addressDisplay}" has been bound to your Telegram account.`
           );
           getBind(); //refresh page
         } else {
@@ -144,6 +144,7 @@ export default function HomePage() {
       }
       setBindLoading(false);
     } catch (e) {
+      console.log(e);
       message.error("Bind failed.");
     } finally {
       setBindLoading(false);

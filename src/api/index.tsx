@@ -102,13 +102,13 @@ export const bind1WithWeb3Proof = async (params: {
   pubkey: string;
   // chain_name: string;
 }) => {
-  const { address, appid, sig } = params;
+  const { address, appid, sig, pubkey } = params;
   return Api.bind1WithWeb3Proof({
     addr: address,
     platform: PLATFORM,
     tid: appid,
     sig,
-    pubkey,
+    pubkey: pubkey,
     chain_name: CHAIN_NAME,
   });
 };
