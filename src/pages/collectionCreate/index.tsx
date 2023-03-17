@@ -25,6 +25,30 @@ import { SUCCESS_CODE } from "@/utils/request";
 import { uploadFile, genCollectionDeployTx } from "@/api";
 import { useTonhubConnect } from "react-ton-x";
 
+export const TxConfirmModal = () => {
+  Modal.info({
+    title: `Please confirm on ${
+      process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
+    }`,
+    content: (
+      <div>
+        <p>
+          {`Please open the ${
+            process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
+          } wallet on your phone and confirm the transaction
+          on the homepage.`}
+        </p>
+        <p>
+          It may take some time to sync collection and NFT from TON, please wait
+          a moment and refresh.
+        </p>
+      </div>
+    ),
+    onOk() {},
+    okText: "Done",
+  });
+};
+
 export default () => {
   const { address } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
@@ -72,22 +96,7 @@ export default () => {
         text: "Create Collection", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
         // payload: tx.payload, // Optional serialized to base64 string payload cell
       };
-      Modal.info({
-        title: `Please confirm on ${
-          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-        }`,
-        content: (
-          <div>
-            <p>
-              {`Please open the ${
-                process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-              } wallet on your phone and confirm the transaction
-              on the homepage`}
-            </p>
-          </div>
-        ),
-        onOk() {},
-      });
+      TxConfirmModal();
       const response = await connect.api.requestTransaction(request);
 
       console.log("tx resp: ", response);
@@ -105,8 +114,8 @@ export default () => {
       } else if (response.type === "success") {
         // Handle successful transaction
         message.success("Create collection successfully.");
-        history.push("/collections");
-        const externalMessage = response.response; // Signed external message that was sent to the network
+        history.goBack();
+        Modal.destroyAll();
       } else {
         throw new Error("Impossible");
       }
@@ -114,6 +123,8 @@ export default () => {
     } catch (e) {
       message.error("Create collection failed.");
       setSubmitting(false);
+    } finally {
+      Modal.destroyAll();
     }
   };
 

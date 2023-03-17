@@ -76,6 +76,12 @@ export default function HomePage() {
     });
   };
 
+  const reload = () => {
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
   const handleBind = async () => {
     // const msg = {
     //   type: "bind_addr",
@@ -159,12 +165,6 @@ export default function HomePage() {
     //   },
     // };
     // window.Telegram.WebApp.sendData(JSON.stringify(msg));
-    console.log(
-      "appPublic: ",
-      Buffer.from(connect.state.walletConfig.appPublicKey, "base64").toString(
-        "hex"
-      )
-    );
     try {
       setUnbindLoading(true);
       signConfirm();

@@ -6,7 +6,7 @@ import { PAGE_SIZE } from "@/utils/constant";
 import { useModel, history } from "umi";
 import { getCreatedCollectionList } from "@/api/apis";
 import { getUrl } from "@/utils";
-
+import { ReloadOutlined } from "@ant-design/icons";
 export default () => {
   const { address } = useModel("app");
 
@@ -16,14 +16,17 @@ export default () => {
   const [total, setTotal] = useState(0);
   const fetchCollections = async (page: number) => {
     if (address) {
+      setLoading(true);
       const res = await getCreatedCollectionList({
         creator: address,
         page,
         gap: PAGE_SIZE,
       });
-      res.data.forEach((item: any) => (item.image = getUrl(item.image)));
-      setCollections(res.data);
+      const list = res.data.filter((item) => item.deployed);
+      list.forEach((item: any) => (item.image = getUrl(item.image)));
+      setCollections(list);
       setTotal(res.total);
+      setLoading(false);
     }
   };
 
@@ -39,20 +42,29 @@ export default () => {
       <Back />
       <h1 className="page-title">Collections</h1>
       <div className="list-header">
+        <div className="list-header-btns">
+          <Button
+            type="primary"
+            className="primary-btn btn-create"
+            onClick={() => history.push("/collection/create")}
+          >
+            Create Collection
+          </Button>
+          <Button
+            type="primary"
+            className="primary-btn btn-create"
+            onClick={() => history.push("/collection/mint")}
+          >
+            Mint NFT
+          </Button>
+        </div>
         <Button
           type="primary"
-          className="primary-btn btn-create"
-          onClick={() => history.push("/collection/create")}
-        >
-          Create Collection
-        </Button>
-        <Button
-          type="primary"
-          className="primary-btn btn-create"
-          onClick={() => history.push("/collection/mint")}
-        >
-          Mint NFT
-        </Button>
+          shape="circle"
+          size="small"
+          icon={<ReloadOutlined />}
+          onClick={() => fetchCollections(page)}
+        />
       </div>
       <ul className="collection-list">
         <Spin spinning={loading} className="list-loading">

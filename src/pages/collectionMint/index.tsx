@@ -25,7 +25,7 @@ import { uploadFile, genCollectionDeployTx, genNFTMintTx } from "@/api";
 import { getCreatedCollectionList } from "@/api/apis";
 import { toNano } from "ton";
 import { useTonhubConnect } from "react-ton-x";
-
+import { TxConfirmModal } from "../collectionCreate";
 export default () => {
   const { address } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
@@ -79,22 +79,7 @@ export default () => {
         text: "Mint NFT", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
         payload: tx.payload, // Optional serialized to base64 string payload cell
       };
-      Modal.info({
-        title: `Please confirm on ${
-          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-        }`,
-        content: (
-          <div>
-            <p>
-              {`Please open the ${
-                process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-              } wallet on your phone and confirm the transaction
-              on the homepage`}
-            </p>
-          </div>
-        ),
-        onOk() {},
-      });
+      TxConfirmModal();
       const response = await connect.api.requestTransaction(request);
 
       console.log("tx resp: ", response);
@@ -112,8 +97,8 @@ export default () => {
       } else if (response.type === "success") {
         // Handle successful transaction
         message.success("Mint NFT successfully.");
-        history.push("/collections");
-        const externalMessage = response.response; // Signed external message that was sent to the network
+        history.goBack();
+        Modal.destroyAll();
       } else {
         throw new Error("Impossible");
       }
@@ -121,6 +106,8 @@ export default () => {
     } catch (e) {
       message.error("Mint NFT failed.");
       setSubmitting(false);
+    } finally {
+      Modal.destroyAll();
     }
   };
 
