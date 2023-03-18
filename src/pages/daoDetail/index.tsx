@@ -8,7 +8,7 @@ import {
   Proposal,
 } from "@/api/proposal";
 import { CHAIN_NAME } from "@/utils/constant";
-import { formatTimestamp } from "@/utils";
+import { formatTimestamp, getUrl } from "@/utils";
 import { Pagination, Button, Modal, Spin } from "antd";
 import { history } from "umi";
 import ProposalItemStatus from "@/components/ProposalItemStatus";
@@ -34,6 +34,7 @@ export default () => {
     });
     if (collectionDao) {
       const dao = collectionDao.dao;
+      dao.image = getUrl(dao.image);
       setCurrentDao(dao);
       return collectionDao;
     }

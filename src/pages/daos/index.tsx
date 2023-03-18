@@ -4,6 +4,7 @@ import { useModel, history } from "umi";
 import { Pagination, Spin } from "antd";
 import Back from "@/components/Back";
 import "./index.less";
+import { getUrl } from "@/utils";
 const PAGE_SIZE = 10;
 export default () => {
   const { address } = useModel("app");
@@ -18,6 +19,9 @@ export default () => {
         offset: (_page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
         address,
+      });
+      res.data.forEach((item) => {
+        item.image = getUrl(item.image);
       });
       setDaos(res.data);
       setTotal(res.total);
