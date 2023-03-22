@@ -120,7 +120,8 @@ export default () => {
         value: item.addr,
         label: item.name,
       }));
-      setCollections(list);
+      const _list = res.data.filter((item) => item.deployed);
+      setCollections(_list);
     }
   };
 
