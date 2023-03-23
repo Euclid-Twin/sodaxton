@@ -12,7 +12,7 @@ export default defineConfig({
     "process.env.API_HOST":
       process.env.APP_ENV === "test"
         ? "https://apiv2-test.platwin.io/api/v1"
-        : "https://apiv2-test.platwin.io/api/v1",
+        : "https://apiv2.platwin.io/api/v1",
     "process.env.APP_URL":
       process.env.APP_ENV === "prod"
         ? "https://twa.soton.sonet.one"
