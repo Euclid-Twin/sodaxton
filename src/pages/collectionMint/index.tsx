@@ -116,12 +116,13 @@ export default () => {
       const res = await getCreatedCollectionList({
         creator: address,
       });
-      const list = res.data.map((item: any) => ({
+      const _list = res.data.filter((item) => item.deployed);
+      const list = _list.map((item: any) => ({
         value: item.addr,
         label: item.name,
       }));
-      const _list = res.data.filter((item) => item.deployed);
-      setCollections(_list);
+
+      setCollections(list);
     }
   };
 

@@ -1,6 +1,16 @@
 import { Link } from "umi";
 import "../assets/global.less";
 import "./index.less";
+import {
+  THEME,
+  TonConnectUIProvider,
+  useTonAddress,
+} from "@tonconnect/ui-react";
+import {
+  useTonConnectUI,
+  useTonWallet,
+  TonConnectButton,
+} from "@tonconnect/ui-react";
 
 import { useEffect } from "react";
 import { useModel } from "umi";
@@ -23,6 +33,7 @@ import QRCode from "react-qr-code";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { TonClient } from "ton";
+import { WalletName } from "@/models/app";
 let wasPendingConnectionChecked = false;
 
 // export default function Layout(props: any) {
@@ -64,37 +75,54 @@ export default (props: any) => {
 
   return (
     <div>
-      <QueryClientProvider client={queryClient}>
-        <TonhubConnectProvider
-          network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
-          url={"https://tonhub-test.sonet.one" || process.env.APP_URL!}
-          // url="https://ton.org"
-          name="Soton TWA BOT"
-          debug={true}
-          connectionState={connectionState}
-          setConnectionState={(s) => {
-            setConnectionState(s as RemoteConnectPersistance);
-          }}
-        >
-          <div className="layout">{props.children}</div>;
-          <_TonConnecterInternal />
-        </TonhubConnectProvider>
-      </QueryClientProvider>
+      <TonConnectUIProvider
+        manifestUrl="https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json"
+        uiPreferences={{ theme: THEME.DARK }}
+        walletsList={{ wallets: ["Tonkeeper"] }} //Tonhub can not login
+      >
+        <QueryClientProvider client={queryClient}>
+          <TonhubConnectProvider
+            network={process.env.APP_ENV === "prod" ? "mainnet" : "testnet"}
+            url={process.env.APP_URL!}
+            // url="https://ton.org"
+            name="Soton TWA BOT"
+            debug={true}
+            connectionState={connectionState}
+            setConnectionState={(s) => {
+              setConnectionState(s as RemoteConnectPersistance);
+            }}
+          >
+            <div className="layout">{props.children}</div>;
+            <_TonConnecterInternal />
+          </TonhubConnectProvider>
+        </QueryClientProvider>
+      </TonConnectUIProvider>
     </div>
   );
 };
 
 function _TonConnecterInternal(props: any) {
+  const wallet = useTonWallet();
+  const tonkeeperAddress = useTonAddress();
+
   const connect: any = useTonhubConnect();
-  const { setAddress, address } = useModel("app");
-  const isConnected = connect.state.type === "online";
+  const { setAddress, address, setWalletName } = useModel("app");
+  // const isConnected = connect.state.type === "online";
   console.log(connect.state.type);
+  console.log("tonkeeper wallet:", wallet, tonkeeperAddress);
   useEffect(() => {
     const addr = connect.state?.walletConfig?.address;
     if (addr && addr !== address) {
       setAddress(connect.state?.walletConfig?.address);
+      setWalletName(WalletName.Tonhub);
     }
   }, [connect]);
+  useEffect(() => {
+    if (tonkeeperAddress) {
+      setAddress(tonkeeperAddress);
+      setWalletName(WalletName.Tonkeeper);
+    }
+  }, [tonkeeperAddress]);
 
   const handleLogout = () => {
     connect.api.revoke();
@@ -103,9 +131,10 @@ function _TonConnecterInternal(props: any) {
 
   return (
     <>
-      {!isConnected && (
+      {!address && (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <TonConnect />
+          {/* <TonConnectButton /> */}
         </div>
       )}
     </>

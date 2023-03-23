@@ -6,6 +6,7 @@ import {
   useTonhubConnect,
 } from "react-ton-x";
 import { toNano, beginCell } from "ton";
+import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 import "./index.less";
 import { Button, Modal, message } from "antd";
@@ -16,16 +17,18 @@ import { fallbackCopyTextToClipboard } from "@/utils";
 import CollectionTx from "@/components/Transactoin";
 import { PLATFORM } from "@/utils/constant";
 import { bind1WithWeb3Proof, unbind } from "@/api";
+import { WalletName } from "@/models/app";
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
-  const { address, setAddress } = useModel("app");
+  const { address, setAddress, walletName } = useModel("app");
   const [initData, setInitData] = useState();
   const [dataUnsafe, setDataUnsafe] = useState();
   const [bindLoading, setBindLoading] = useState(false);
   const [unbindLoading, setUnbindLoading] = useState(false);
 
   const connect = useTonhubConnect();
-  const isConnected = connect.state.type === "online";
+  const [tonConnectUi] = useTonConnectUI();
+
   const location: Location = useLocation();
   console.log(location.query);
   const tid = location.query?.tid as string;
@@ -236,8 +239,13 @@ export default function HomePage() {
   }, [address]);
 
   const handleLogout = () => {
-    connect.api.revoke();
-    setAddress("");
+    if (walletName === WalletName.Tonhub) {
+      connect.api.revoke();
+      setAddress("");
+    } else {
+      tonConnectUi.disconnect();
+      setAddress("");
+    }
   };
 
   return (
@@ -298,7 +306,7 @@ export default function HomePage() {
         </div>
       )}
       {/* <CollectionTx /> */}
-      {isConnected && (
+      {address && (
         <div
           style={{
             marginTop: "20px",
