@@ -95,50 +95,10 @@ export default function HomePage() {
     // window.Telegram.WebApp.sendData(JSON.stringify(msg));
     try {
       setBindLoading(true);
-      signConfirm();
-      const platform = PLATFORM;
-      const payloadToSign = Buffer.concat([
-        Buffer.from([0, 0, 0, 0]),
-        Buffer.from(platform + tid),
-      ]);
-      const payload = beginCell()
-        .storeBuffer(payloadToSign)
-        .endCell()
-        .toBoc({ idx: false })
-        .toString("base64");
-      // const text = "Please, sign our terms or service and privacy policy";
-      const text = "Bind your address with Telegram";
-      // Request body
-      const request = {
-        //@ts-ignore
-        seed: connect.state.seed, // Session Seed
-        //@ts-ignore
-        appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-        timeout: 5 * 60 * 1000, // 5 minut timeout
-        text: text, // Text to sign, presented to the user.
-        payload: payload, // Optional serialized to base64 string payload cell
-      };
-      const response = await connect.api.requestSign(request);
-      if (response.type === "rejected") {
-        // Handle rejection
-        message.warn("Transaction rejected");
-      } else if (response.type === "expired") {
-        // Handle expiration
-        message.warn("Transaction expired");
-      } else if (response.type === "invalid_session") {
-        // Handle expired or invalid session
-        message.warn(
-          "Session or transaction expired. Please re-login and tray again."
-        );
-      } else if (response.type === "success") {
-        // Handle successful transaction
-        const sig = response.signature;
-
+      if (walletName === WalletName.Tonkeeper) {
         const res = await bind1WithWeb3Proof({
           address,
           appid: tid!,
-          sig,
-          pubkey: getPk(connect.state.walletConfig.walletConfig),
         });
         if (res) {
           message.success(
@@ -149,7 +109,62 @@ export default function HomePage() {
           message.error("Bind failed.");
         }
       } else {
-        throw new Error("Impossible");
+        signConfirm();
+        const platform = PLATFORM;
+        const payloadToSign = Buffer.concat([
+          Buffer.from([0, 0, 0, 0]),
+          Buffer.from(platform + tid),
+        ]);
+        const payload = beginCell()
+          .storeBuffer(payloadToSign)
+          .endCell()
+          .toBoc({ idx: false })
+          .toString("base64");
+        // const text = "Please, sign our terms or service and privacy policy";
+        const text = "Bind your address with Telegram";
+        // Request body
+        const request = {
+          //@ts-ignore
+          seed: connect.state.seed, // Session Seed
+          //@ts-ignore
+          appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+          timeout: 5 * 60 * 1000, // 5 minut timeout
+          text: text, // Text to sign, presented to the user.
+          payload: payload, // Optional serialized to base64 string payload cell
+        };
+        const response = await connect.api.requestSign(request);
+        if (response.type === "rejected") {
+          // Handle rejection
+          message.warn("Transaction rejected");
+        } else if (response.type === "expired") {
+          // Handle expiration
+          message.warn("Transaction expired");
+        } else if (response.type === "invalid_session") {
+          // Handle expired or invalid session
+          message.warn(
+            "Session or transaction expired. Please re-login and tray again."
+          );
+        } else if (response.type === "success") {
+          // Handle successful transaction
+          const sig = response.signature;
+
+          const res = await bind1WithWeb3Proof({
+            address,
+            appid: tid!,
+            sig,
+            pubkey: getPk(connect.state.walletConfig.walletConfig),
+          });
+          if (res) {
+            message.success(
+              `TON address "${addressDisplay}" has been bound to your Telegram account.`
+            );
+            getBind(); //refresh page
+          } else {
+            message.error("Bind failed.");
+          }
+        } else {
+          throw new Error("Impossible");
+        }
       }
       setBindLoading(false);
     } catch (e) {
@@ -170,48 +185,10 @@ export default function HomePage() {
     // window.Telegram.WebApp.sendData(JSON.stringify(msg));
     try {
       setUnbindLoading(true);
-      signConfirm();
-      const platform = PLATFORM;
-      const payloadToSign = Buffer.concat([
-        Buffer.from([0, 0, 0, 0]),
-        Buffer.from(platform + tid),
-      ]);
-      const payload = beginCell()
-        .storeBuffer(payloadToSign)
-        .endCell()
-        .toBoc({ idx: false })
-        .toString("base64");
-      const text = "Unbind your address with Telegram";
-      // Request body
-      const request = {
-        //@ts-ignore
-        seed: connect.state.seed, // Session Seed
-        //@ts-ignore
-        appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-        timeout: 5 * 60 * 1000, // 5 minut timeout
-        text: text, // Text to sign, presented to the user.
-        payload: payload, // Optional serialized to base64 string payload cell
-      };
-      const response = await connect.api.requestSign(request);
-      if (response.type === "rejected") {
-        // Handle rejection
-        message.warn("Transaction rejected");
-      } else if (response.type === "expired") {
-        // Handle expiration
-        message.warn("Transaction expired");
-      } else if (response.type === "invalid_session") {
-        // Handle expired or invalid session
-        message.warn(
-          "Session or transaction expired. Please re-login and tray again."
-        );
-      } else if (response.type === "success") {
-        // Handle successful transaction
-        const sig = response.signature;
+      if (walletName === WalletName.Tonkeeper) {
         const res = await unbind({
           addr: address,
           tid: tid!,
-          sig,
-          pubkey: getPk(connect.state.walletConfig.walletConfig),
         });
         if (res) {
           message.success(`Your TON address is unbound.`);
@@ -220,7 +197,58 @@ export default function HomePage() {
           message.error("Unbind failed.");
         }
       } else {
-        throw new Error("Impossible");
+        signConfirm();
+        const platform = PLATFORM;
+        const payloadToSign = Buffer.concat([
+          Buffer.from([0, 0, 0, 0]),
+          Buffer.from(platform + tid),
+        ]);
+        const payload = beginCell()
+          .storeBuffer(payloadToSign)
+          .endCell()
+          .toBoc({ idx: false })
+          .toString("base64");
+        const text = "Unbind your address with Telegram";
+        // Request body
+        const request = {
+          //@ts-ignore
+          seed: connect.state.seed, // Session Seed
+          //@ts-ignore
+          appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+          timeout: 5 * 60 * 1000, // 5 minut timeout
+          text: text, // Text to sign, presented to the user.
+          payload: payload, // Optional serialized to base64 string payload cell
+        };
+        const response = await connect.api.requestSign(request);
+        if (response.type === "rejected") {
+          // Handle rejection
+          message.warn("Transaction rejected");
+        } else if (response.type === "expired") {
+          // Handle expiration
+          message.warn("Transaction expired");
+        } else if (response.type === "invalid_session") {
+          // Handle expired or invalid session
+          message.warn(
+            "Session or transaction expired. Please re-login and tray again."
+          );
+        } else if (response.type === "success") {
+          // Handle successful transaction
+          const sig = response.signature;
+          const res = await unbind({
+            addr: address,
+            tid: tid!,
+            sig,
+            pubkey: getPk(connect.state.walletConfig.walletConfig),
+          });
+          if (res) {
+            message.success(`Your TON address is unbound.`);
+            getBind(); //refresh page
+          } else {
+            message.error("Unbind failed.");
+          }
+        } else {
+          throw new Error("Impossible");
+        }
       }
       setUnbindLoading(false);
     } catch (e) {

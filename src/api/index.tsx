@@ -98,8 +98,8 @@ export const editDao = async () => {};
 export const bind1WithWeb3Proof = async (params: {
   address: string;
   appid: string;
-  sig: string;
-  pubkey: string;
+  sig?: string;
+  pubkey?: string;
   // chain_name: string;
 }) => {
   const { address, appid, sig, pubkey } = params;
@@ -107,7 +107,7 @@ export const bind1WithWeb3Proof = async (params: {
     addr: address,
     platform: PLATFORM,
     tid: appid,
-    sig,
+    sig: sig,
     pubkey: pubkey,
     chain_name: CHAIN_NAME,
   });
@@ -116,8 +116,8 @@ export const bind1WithWeb3Proof = async (params: {
 export const unbind = async (params: {
   addr: string;
   tid: string;
-  sig: string;
-  pubkey: string;
+  sig?: string;
+  pubkey?: string;
   platform?: string;
   chain_name?: string;
 }) => {

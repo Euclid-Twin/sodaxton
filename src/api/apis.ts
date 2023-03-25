@@ -250,10 +250,10 @@ export const getUserVoteInfo = async (
 export interface IBind1Params {
   addr: string;
   tid: string;
-  sig: string;
+  sig?: string;
   platform: string;
   chain_name: string;
-  pubkey: string;
+  pubkey?: string;
 }
 export const bind1WithWeb3Proof = async (params: IBind1Params) => {
   const url = `${API_HOST}/bind-addr`;

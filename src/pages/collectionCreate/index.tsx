@@ -133,7 +133,8 @@ export default () => {
             },
           ],
         };
-        const resp = await tonConnectUi.sendTransaction(_tx);
+        //@ts-ignore
+        const resp = await tonConnectUi.connector.sendTransaction(_tx);
         console.log("tonkeeper resp: ", resp);
         message.success("Create collection successfully.");
         history.goBack();

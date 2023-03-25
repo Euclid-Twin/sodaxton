@@ -76,7 +76,7 @@ export default (props: any) => {
   return (
     <div>
       <TonConnectUIProvider
-        manifestUrl="https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json"
+        manifestUrl={`${process.env.APP_URL}/tonconnect-manifest.json`}
         uiPreferences={{ theme: THEME.DARK }}
         walletsList={{ wallets: ["Tonkeeper"] }} //Tonhub can not login
       >
@@ -218,18 +218,24 @@ function TonConnect({ type: WalletName }: any) {
 }
 
 function TonkeeperConnect() {
-  const tonkeeperAddress = useTonAddress();
-  const tonConnectUi = useTonConnectUI();
+  const [universalLink, setUniversalLink] = useState("");
+
+  const [tonConnectUi] = useTonConnectUI();
   const walletConnectionSource = {
     universalLink: "https://app.tonkeeper.com/ton-connect",
     bridgeUrl: "https://bridge.tonapi.io/bridge",
   };
   //@ts-ignore
-  const connector = tonConnectUi[0].connector;
-  const universalLink = tonkeeperAddress
-    ? ""
-    : connector.connect(walletConnectionSource);
-  console.log("tonConnectUi: ", universalLink);
+  const connector = tonConnectUi.connector;
+  const unsubscribe = connector.onStatusChange((walletInfo: any) => {
+    // update state/reactive variables to show updates in the ui
+    console.log(walletInfo);
+  });
+  useEffect(() => {
+    const universalLink = connector.connect(walletConnectionSource);
+    setUniversalLink(universalLink);
+    console.log("tonConnectUi: ", universalLink);
+  }, []);
   return (
     <div>
       <div className="login-content">
