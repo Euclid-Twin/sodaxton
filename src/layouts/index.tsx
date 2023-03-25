@@ -12,7 +12,7 @@ import {
   TonConnectButton,
 } from "@tonconnect/ui-react";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useModel } from "umi";
 import Back from "@/components/Back";
 
@@ -22,7 +22,7 @@ import {
   TonhubConnectProvider,
   useTonhubConnect,
 } from "react-ton-x";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 // TODO change to L3 client
 export const tc = new TonClient({
   endpoint: "https://scalable-api.tonwhales.com/jsonRPC",
@@ -92,7 +92,7 @@ export default (props: any) => {
               setConnectionState(s as RemoteConnectPersistance);
             }}
           >
-            <div className="layout">{props.children}</div>;
+            <div className="layout">{props.children}</div>
             <_TonConnecterInternal />
           </TonhubConnectProvider>
         </QueryClientProvider>
@@ -104,12 +104,14 @@ export default (props: any) => {
 function _TonConnecterInternal(props: any) {
   const wallet = useTonWallet();
   const tonkeeperAddress = useTonAddress();
+  const [connectType, setConnectType] = useState("");
 
   const connect: any = useTonhubConnect();
   const { setAddress, address, setWalletName } = useModel("app");
   // const isConnected = connect.state.type === "online";
   console.log(connect.state.type);
   console.log("tonkeeper wallet:", wallet, tonkeeperAddress);
+
   useEffect(() => {
     const addr = connect.state?.walletConfig?.address;
     if (addr && addr !== address) {
@@ -128,25 +130,54 @@ function _TonConnecterInternal(props: any) {
     connect.api.revoke();
     setAddress("");
   };
-
+  console.log("connectTYpe: ", connectType);
+  const triggerTonkeeperClick = () => {
+    const btn = document.getElementById("tc-connect-button");
+    btn?.click();
+  };
   return (
     <>
       {!address && (
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <TonConnect />
-          {/* <TonConnectButton /> */}
+        <div className="connect-container">
+          <h1 className="title">Welcome to Soton</h1>
+          <div className="connect-btns">
+            <Button
+              type="primary"
+              className="primary-btn btn-connect"
+              onClick={() => setConnectType(WalletName.Tonhub)}
+            >
+              Connect with Tonhub
+            </Button>
+            <Button
+              type="primary"
+              className="primary-btn btn-connect"
+              onClick={() => {
+                setConnectType(WalletName.Tonkeeper);
+              }}
+            >
+              Connect with Tonkeeper
+            </Button>
+          </div>
+          <div className="login-container">
+            {connectType === WalletName.Tonhub && <TonConnect />}
+            {connectType === WalletName.Tonkeeper && <TonkeeperConnect />}
+            {/* <TonConnectButton
+              style={{
+                display: "none",
+              }}
+            /> */}
+          </div>
         </div>
       )}
     </>
   );
 }
 
-function TonConnect() {
+function TonConnect({ type: WalletName }: any) {
   const connect = useTonhubConnect();
   // console.log("link: ", connect.state.link);
   return (
-    <div className="login-container">
-      <h1 className="title">Welcome to Soton</h1>
+    <div>
       {connect.state.type === "initing" && (
         <span className="text-tip">Waiting for session</span>
       )}
@@ -176,12 +207,52 @@ function TonConnect() {
               </div>
               <p className="text-tip">
                 Scan with your mobile{" "}
-                {process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"} wallet:
+                {process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"} wallet.
               </p>
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function TonkeeperConnect() {
+  const tonkeeperAddress = useTonAddress();
+  const tonConnectUi = useTonConnectUI();
+  const walletConnectionSource = {
+    universalLink: "https://app.tonkeeper.com/ton-connect",
+    bridgeUrl: "https://bridge.tonapi.io/bridge",
+  };
+  //@ts-ignore
+  const connector = tonConnectUi[0].connector;
+  const universalLink = tonkeeperAddress
+    ? ""
+    : connector.connect(walletConnectionSource);
+  console.log("tonConnectUi: ", universalLink);
+  return (
+    <div>
+      <div className="login-content">
+        {isMobile() && (
+          <Button
+            className="primary-btn login-mobile-btn"
+            onClick={() => {
+              // @ts-ignore
+              window.location.href = universalLink;
+            }}
+          >
+            Open Tonkeeper Wallet
+          </Button>
+        )}
+        {!isMobile() && (
+          <div className="login-pc">
+            <div className="login-qrcode">
+              <QRCode value={universalLink} />
+            </div>
+            <p className="text-tip">Scan with your mobile Tonkeeper wallet.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

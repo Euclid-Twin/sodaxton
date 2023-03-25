@@ -26,22 +26,29 @@ import { getCreatedCollectionList } from "@/api/apis";
 import { toNano } from "ton";
 import { useTonhubConnect } from "react-ton-x";
 import { TxConfirmModal } from "../collectionCreate";
+import { WalletName } from "@/models/app";
+import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+
 export default () => {
-  const { address } = useModel("app");
+  const { address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
   const [fileUrl, setFileUrl] = useState("");
   const [imgPreview, setImgPreview] = useState();
   const [collections, setCollections] = useState([]);
   const connect = useTonhubConnect();
+  const [tonConnectUi] = useTonConnectUI();
 
+  const walletDisplay = useMemo(() => {
+    if (walletName === WalletName.Tonkeeper) {
+      return WalletName.Tonkeeper;
+    } else {
+      return process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox";
+    }
+  }, [walletName]);
   const handleCreate = async () => {
     if (!address) {
-      message.warn(
-        `Please login with ${
-          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-        }.`
-      );
+      message.warn(`Please login with ${walletDisplay}.`);
       return;
     }
     try {
@@ -67,45 +74,69 @@ export default () => {
         attributes: values.attributes,
       };
       const tx = await genNFTMintTx(params);
-      const request = {
-        //@ts-ignore
-        seed: connect.state.seed, // Session Seed
-        //@ts-ignore
-        appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-        to: collection.value, // Destination
-        value: toNano(tx.value).toString(), // Amount in nano-tons
-        timeout: 5 * 60 * 1000, // 1 min timeout
-        // stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
-        text: "Mint NFT", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
-        payload: tx.payload, // Optional serialized to base64 string payload cell
-      };
-      TxConfirmModal();
-      const response = await connect.api.requestTransaction(request);
+      TxConfirmModal(walletDisplay);
+      if (walletName === WalletName.Tonhub) {
+        const request = {
+          //@ts-ignore
+          seed: connect.state.seed, // Session Seed
+          //@ts-ignore
+          appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+          to: collection.value, // Destination
+          value: toNano(tx.value).toString(), // Amount in nano-tons
+          timeout: 5 * 60 * 1000, // 1 min timeout
+          // stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
+          text: "Mint NFT", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
+          payload: tx.payload, // Optional serialized to base64 string payload cell
+        };
 
-      console.log("tx resp: ", response);
-      if (response.type === "rejected") {
-        // Handle rejection
-        message.warn("Transaction rejected.");
-      } else if (response.type === "expired") {
-        // Handle expiration
-        message.warn("Transaction expired. Please try again.");
-      } else if (response.type === "invalid_session") {
-        // Handle expired or invalid session
-        message.warn(
-          "Transaction or session expired. Please re-login and try again."
-        );
-      } else if (response.type === "success") {
-        // Handle successful transaction
+        const response = await connect.api.requestTransaction(request);
+
+        console.log("tx resp: ", response);
+        if (response.type === "rejected") {
+          // Handle rejection
+          message.warn("Transaction rejected.");
+        } else if (response.type === "expired") {
+          // Handle expiration
+          message.warn("Transaction expired. Please try again.");
+        } else if (response.type === "invalid_session") {
+          // Handle expired or invalid session
+          message.warn(
+            "Transaction or session expired. Please re-login and try again."
+          );
+        } else if (response.type === "success") {
+          // Handle successful transaction
+          message.success("Mint NFT successfully.");
+          history.goBack();
+          Modal.destroyAll();
+        } else {
+          throw new Error("Impossible");
+        }
+      } else {
+        const _tx = {
+          validUntil: Date.now() + 5 * 60 * 1000,
+          messages: [
+            {
+              address: collection.value,
+              amount: toNano(tx.value).toString(),
+              stateInit: tx.payload,
+              text: "Mint NFT",
+            },
+          ],
+        };
+        const resp = await tonConnectUi.sendTransaction(_tx);
+        console.log("tonkeeper resp: ", resp);
         message.success("Mint NFT successfully.");
         history.goBack();
         Modal.destroyAll();
-      } else {
-        throw new Error("Impossible");
       }
       setSubmitting(false);
     } catch (e) {
+      if (walletName === WalletName.Tonkeeper) {
+        message.warn(e.message);
+      }
       message.error("Mint NFT failed.");
       setSubmitting(false);
+      console.log(e);
     } finally {
       Modal.destroyAll();
     }

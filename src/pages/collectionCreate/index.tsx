@@ -14,6 +14,7 @@ import {
 } from "antd";
 const TextArea = Input.TextArea;
 import { toNano } from "ton";
+import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 import { UploadOutlined } from "@ant-design/icons";
 import Back from "@/components/Back";
@@ -24,18 +25,15 @@ import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
 import { uploadFile, genCollectionDeployTx } from "@/api";
 import { useTonhubConnect } from "react-ton-x";
+import { WalletName } from "@/models/app";
 
-export const TxConfirmModal = () => {
+export const TxConfirmModal = (wallet: string) => {
   Modal.info({
-    title: `Please confirm on ${
-      process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-    }`,
+    title: `Please confirm on ${wallet}`,
     content: (
       <div>
         <p>
-          {`Please open the ${
-            process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-          } wallet on your phone and confirm the transaction
+          {`Please open the ${wallet} wallet on your phone and confirm the transaction
           on the homepage.`}
         </p>
         <p>
@@ -50,20 +48,24 @@ export const TxConfirmModal = () => {
 };
 
 export default () => {
-  const { address } = useModel("app");
+  const { address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
   const [fileUrl, setFileUrl] = useState("");
   const [imgPreview, setImgPreview] = useState("");
   const connect = useTonhubConnect();
+  const [tonConnectUi] = useTonConnectUI();
 
+  const walletDisplay = useMemo(() => {
+    if (walletName === WalletName.Tonkeeper) {
+      return WalletName.Tonkeeper;
+    } else {
+      return process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox";
+    }
+  }, [walletName]);
   const handleCreate = async () => {
     if (!address) {
-      message.warn(
-        `Please login with ${
-          process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox"
-        }.`
-      );
+      message.warn(`Please login with ${walletDisplay}.`);
       return;
     }
     if (!fileUrl) {
@@ -84,45 +86,67 @@ export default () => {
       };
 
       const tx = await genCollectionDeployTx(params);
-      const request = {
-        //@ts-ignore
-        seed: connect.state.seed, // Session Seed
-        //@ts-ignore
-        appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-        to: tx.to, // Destination
-        value: toNano(tx.value).toString(), // Amount in nano-tons
-        timeout: 5 * 60 * 1000, // 1 min timeout
-        stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
-        text: "Create Collection", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
-        // payload: tx.payload, // Optional serialized to base64 string payload cell
-      };
-      TxConfirmModal();
-      const response = await connect.api.requestTransaction(request);
-
-      console.log("tx resp: ", response);
-      if (response.type === "rejected") {
-        // Handle rejection
-        message.warn("Transaction rejected.");
-      } else if (response.type === "expired") {
-        // Handle expiration
-        message.warn("Transaction expired. Please try again.");
-      } else if (response.type === "invalid_session") {
-        // Handle expired or invalid session
-        message.warn(
-          "Transaction or session expired. Please re-login and try again."
-        );
-      } else if (response.type === "success") {
-        // Handle successful transaction
+      TxConfirmModal(walletDisplay);
+      if (walletName === WalletName.Tonhub) {
+        const request = {
+          //@ts-ignore
+          seed: connect.state.seed, // Session Seed
+          //@ts-ignore
+          appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+          to: tx.to, // Destination
+          value: toNano(tx.value).toString(), // Amount in nano-tons
+          timeout: 5 * 60 * 1000, // 1 min timeout
+          stateInit: tx.state_init, // Optional serialized to base64 string state_init cell
+          text: "Create Collection", // Optional comment. If no payload specified - sends actual content, if payload is provided this text is used as UI-only hint
+          // payload: tx.payload, // Optional serialized to base64 string payload cell
+        };
+        const response = await connect.api.requestTransaction(request);
+        console.log("tx resp: ", response);
+        if (response.type === "rejected") {
+          // Handle rejection
+          message.warn("Transaction rejected.");
+        } else if (response.type === "expired") {
+          // Handle expiration
+          message.warn("Transaction expired. Please try again.");
+        } else if (response.type === "invalid_session") {
+          // Handle expired or invalid session
+          message.warn(
+            "Transaction or session expired. Please re-login and try again."
+          );
+        } else if (response.type === "success") {
+          // Handle successful transaction
+          message.success("Create collection successfully.");
+          history.goBack();
+          Modal.destroyAll();
+        } else {
+          throw new Error("Impossible");
+        }
+      } else {
+        const _tx = {
+          validUntil: Date.now() + 5 * 60 * 1000,
+          messages: [
+            {
+              address: tx.to,
+              amount: toNano(tx.value).toString(),
+              stateInit: tx.state_init,
+              text: "Create Collection",
+            },
+          ],
+        };
+        const resp = await tonConnectUi.sendTransaction(_tx);
+        console.log("tonkeeper resp: ", resp);
         message.success("Create collection successfully.");
         history.goBack();
         Modal.destroyAll();
-      } else {
-        throw new Error("Impossible");
       }
       setSubmitting(false);
     } catch (e) {
+      if (walletName === WalletName.Tonkeeper) {
+        message.warn(e.message);
+      }
       message.error("Create collection failed.");
       setSubmitting(false);
+      console.log(e);
     } finally {
       Modal.destroyAll();
     }
