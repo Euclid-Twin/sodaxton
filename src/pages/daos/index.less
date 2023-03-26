@@ -1,4 +1,9 @@
 .dao-list {
+  .ant-spin {
+    margin-left: 50%;
+    transform: translateX(-10px);
+    margin-top: 20px;
+  }
   padding-left: 0;
   list-style: none;
   margin-bottom: 20px;
@@ -50,4 +55,61 @@
 
 .list-loading {
   margin-top: 80px;
+}
+
+.dao-list-search-input {
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  flex: 1;
+  height: 40px;
+  margin-right: 30px;
+  .ant-input-group {
+    height: 100%;
+  }
+  .ant-input-group-addon {
+    right: -1px !important;
+    left: auto !important;
+  }
+  .ant-input-group .ant-input {
+    border-radius: 10px;
+    border: none;
+    height: 100%;
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  .ant-input-search > .ant-input-group > .ant-input-group-addon:last-child {
+    right: -1px;
+    background-color: #fff;
+    border: none;
+    border-radius: 0;
+  }
+  .ant-input-search-button {
+    height: 100%;
+    width: 40px;
+    border-radius: 0 10px 10px 0 !important;
+  }
+}
+.list-switch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  > span {
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 15px;
+    cursor: pointer;
+    color: #635f5f;
+  }
+  > i {
+    margin: 0 4px;
+  }
+  > .switch-active {
+    color: #1890ff;
+  }
 }

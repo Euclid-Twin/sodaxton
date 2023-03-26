@@ -30,6 +30,8 @@
     "@ant-design/pro-layout": "^6.5.0",
     "@grammyjs/conversations": "github:grammyjs/conversations",
     "@tanstack/react-query": "^4.3.9",
+    "@tonconnect/sdk": "^2.0.7",
+    "@tonconnect/ui-react": "^0.0.14",
     "@twa-dev/sdk": "^0.0.11",
     "buffer": "^6.0.3",
     "dayjs": "^1.11.7",
@@ -39,6 +41,7 @@
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-infinite-scroll-component": "^6.1.0",
     "react-qr-code": "^2.0.8",
     "react-ton-x": "^1.0.2",
     "ton": "^12.1.3",
@@ -46,9 +49,7 @@
     "ton-x": "^2.0.0",
     "tonweb": "^0.0.60",
     "umi": "^3.5.36",
-    "use-local-storage": "^2.3.6",
-    "@tonconnect/ui-react": "^0.0.14",
-    "@tonconnect/sdk": "^2.0.7"
+    "use-local-storage": "^2.3.6"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",

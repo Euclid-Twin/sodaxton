@@ -1,49 +1,123 @@
 import { DaoItem, getDaoList } from "@/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useModel, history } from "umi";
-import { Pagination, Spin } from "antd";
+import { Pagination, Spin, Input } from "antd";
 import Back from "@/components/Back";
 import "./index.less";
 import { getUrl } from "@/utils";
-const PAGE_SIZE = 10;
+import InfiniteScroll from "react-infinite-scroll-component";
+import { PAGE_SIZE } from "@/utils/constant";
+const { Search } = Input;
+enum ListSwitchEnum {
+  All_List,
+  My_List,
+}
 export default () => {
   const { address } = useModel("app");
   const [daos, setDaos] = useState<DaoItem[]>([]);
-  const [page, setPage] = useState(1);
+  const page = useRef(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [name, setName] = useState("");
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const fetchDaos = async (_page: number) => {
+  const [listSwitch, setListSwitch] = useState<ListSwitchEnum>(
+    ListSwitchEnum.All_List
+  );
+  const fetchDaos = async (_name?: string) => {
     try {
-      setLoading(true);
-      const res = await getDaoList({
-        offset: (_page - 1) * PAGE_SIZE,
+      if (daos.length === 0) {
+        setLoading(true);
+      }
+      const params = {
+        offset: (page.current - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
-        address,
-      });
-      res.data.forEach((item) => {
-        item.image = getUrl(item.image);
-      });
-      setDaos(res.data);
-      setTotal(res.total);
+        name: _name || name,
+        address: "",
+      };
+      if (listSwitch === ListSwitchEnum.My_List) {
+        params.address = address;
+      }
+      const res = await getDaoList(params);
+      if (res && res.data) {
+        if (res.data.length > 0) {
+          setHasMore(true);
+          page.current += 1;
+          if (res.data.length < PAGE_SIZE) {
+            setHasMore(false);
+          }
+        } else {
+          setHasMore(false);
+        }
+        res.data.forEach((item) => {
+          item.image = getUrl(item.image);
+        });
+        setDaos([...daos, ...res.data]);
+        setTotal(res.total);
+      }
     } catch (e) {
       console.log(e);
     } finally {
       setLoading(false);
     }
   };
-  const handleChangePage = (newPage: number, pageSize: number | undefined) => {
-    setPage(newPage);
-    fetchDaos(newPage);
+  // const handleChangePage = (newPage: number, pageSize: number | undefined) => {
+  //   setPage(newPage);
+  //   fetchDaos(newPage);
+  // };
+  const handleListSwitch = (val: ListSwitchEnum) => {
+    if (val !== listSwitch) {
+      setListSwitch(val);
+      setDaos([]);
+      page.current = 1;
+    }
   };
   useEffect(() => {
-    fetchDaos(1);
-  }, [address]);
+    fetchDaos();
+  }, [address, listSwitch, name]);
   return (
     <div className="page-container daos-container">
       <Back />
       <h1 className="page-title">DAOs</h1>
-      <ul className="dao-list">
-        <Spin spinning={loading} className="list-loading">
+      <div className="page-header">
+        <Search
+          className="dao-list-search-input"
+          placeholder="Search..."
+          onSearch={(value) => {
+            page.current = 1;
+            setName(value);
+            setDaos([]);
+          }}
+        />
+        <div className="list-switch">
+          <span
+            className={
+              listSwitch === ListSwitchEnum.All_List ? "switch-active" : ""
+            }
+            onClick={() => handleListSwitch(ListSwitchEnum.All_List)}
+          >
+            DAO list
+          </span>
+          <i>/</i>
+          <span
+            className={
+              listSwitch === ListSwitchEnum.My_List ? "switch-active" : ""
+            }
+            onClick={() => handleListSwitch(ListSwitchEnum.My_List)}
+          >
+            View my DAO
+          </span>
+        </div>
+      </div>
+      <Spin spinning={loading}>
+        <InfiniteScroll
+          dataLength={total}
+          next={fetchDaos}
+          hasMore={hasMore}
+          loader={<Spin spinning></Spin>}
+          // scrollableTarget={id}
+          height={500}
+          className="dao-list"
+        >
           {daos.map((item) => (
             <li>
               <div
@@ -60,9 +134,9 @@ export default () => {
               </div>
             </li>
           ))}
-        </Spin>
-      </ul>
-      <div className="daos-pagination">
+        </InfiniteScroll>
+      </Spin>
+      {/* <div className="daos-pagination">
         <Pagination
           total={total}
           pageSize={PAGE_SIZE}
@@ -71,7 +145,7 @@ export default () => {
           showSizeChanger={false}
           size="small"
         />
-      </div>
+      </div> */}
     </div>
   );
 };

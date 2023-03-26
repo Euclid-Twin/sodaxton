@@ -54,7 +54,7 @@ export default () => {
       const values = await form.validateFields();
       // const startTime = values.period[0].valueOf();
       // const endTime = values.period[1].valueOf();
-      const startTime = values.startTime.valueOf();
+      const startTime = values.startTime.valueOf() + 5 * 60 * 1000;
       const endTime = values.endTime.valueOf();
       console.log();
       const params = {
@@ -98,9 +98,25 @@ export default () => {
       setSubmitting(false);
     }
   };
+  const range = (start: number, end: number) => {
+    const result = [];
+    for (let i = start; i < end; i++) {
+      result.push(i);
+    }
+    return result;
+  };
   const disabledDate = (current: any) => {
     // Can not select days before today and today
-    return current && current < moment().endOf("day");
+    // return current && current < moment().startOf("day");
+    return current.unix() * 1000 < Date.now();
+  };
+
+  const disabledStartTime = (current: any) => {
+    return {
+      disabledHours: () => range(0, 24).splice(4, 20),
+      disabledMinutes: () => range(30, 60),
+      disabledSeconds: () => [55, 56],
+    };
   };
 
   const getSnapShotBlockheight = (startTimeMilliseconds: number) => {};
@@ -163,33 +179,6 @@ export default () => {
           </div>
         </div>
         <div className="form-right">
-          {/* <Form.Item
-            label="Period*"
-            name="period"
-            rules={[
-              {
-                required: true,
-                message: "Please input period",
-              },
-            ]}
-          >
-            <RangePicker
-              dropdownClassName="custom-range-picker"
-              disabledDate={disabledDate}
-              showTime={{
-                defaultValue: [
-                  moment("00:00:00", "HH:mm"),
-                  moment("23:59:59", "HH:mm"),
-                ],
-              }}
-              onChange={(val: any) => {
-                if (val && val.length === 2) {
-                  getSnapShotBlockheight(val[0].valueOf());
-                }
-              }}
-            />
-          </Form.Item> */}
-
           <Form.Item
             label="Period*"
             name="startTime"
@@ -199,6 +188,7 @@ export default () => {
               showTime
               placeholder="Start date"
               disabledDate={disabledDate}
+              // disabledTime={disabledStartTime}
               className="proposal-date-picker"
             />
           </Form.Item>
@@ -207,6 +197,7 @@ export default () => {
             rules={[{ required: true, message: "End date is required" }]}
           >
             <DatePicker
+              showNow={false}
               showTime
               placeholder="End date"
               disabledDate={disabledDate}

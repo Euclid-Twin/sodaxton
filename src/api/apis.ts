@@ -332,6 +332,7 @@ export const getCreatedCollectionList = async (params: {
   page?: number;
   gap?: number;
   chain_name?: string;
+  name?: string;
 }) => {
   const url = `${API_HOST}/collection/created-by`;
   params.chain_name = CHAIN_NAME;
