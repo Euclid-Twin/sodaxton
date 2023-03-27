@@ -113,7 +113,7 @@ export default () => {
           dataLength={total}
           next={fetchDaos}
           hasMore={hasMore}
-          loader={<Spin spinning></Spin>}
+          loader={<Spin spinning={daos.length > 0}></Spin>}
           // scrollableTarget={id}
           height={500}
           className="dao-list"

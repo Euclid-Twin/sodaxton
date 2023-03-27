@@ -20,7 +20,10 @@ export default () => {
 
   const fetchCollections = async () => {
     if (address) {
-      setLoading(true);
+      if (collections.length === 0) {
+        setLoading(true);
+      }
+
       const res = await getCreatedCollectionList({
         creator: address,
         page: page.current,
@@ -82,6 +85,7 @@ export default () => {
           onClick={() => {
             setCollections([]);
             page.current = 1;
+            setLoading(true);
             fetchCollections();
           }}
         />
@@ -95,36 +99,38 @@ export default () => {
           setCollections([]);
         }}
       />
-      <InfiniteScroll
-        dataLength={total}
-        next={fetchCollections}
-        hasMore={hasMore}
-        loader={<Spin spinning></Spin>}
-        // scrollableTarget={id}
-        height={500}
-        className="collection-list"
-      >
-        {collections.map((item) => (
-          <li>
-            <div
-              className="collection-item"
-              onClick={() =>
-                window.open(
-                  `${process.env.GETGEMS_COLLECTION_URL}/${item.addr}`
-                )
-              }
-            >
-              <img className="collection-logo" src={item.image} alt="" />
-              <span>{item.name}</span>
-              <img
-                src="/icon-detail-arrow.svg"
-                alt=""
-                className="detail-arrow"
-              />
-            </div>
-          </li>
-        ))}
-      </InfiniteScroll>
+      <Spin spinning={loading}>
+        <InfiniteScroll
+          dataLength={total}
+          next={fetchCollections}
+          hasMore={hasMore}
+          loader={<Spin spinning={collections.length > 0}></Spin>}
+          // scrollableTarget={id}
+          height={500}
+          className="collection-list"
+        >
+          {collections.map((item) => (
+            <li>
+              <div
+                className="collection-item"
+                onClick={() =>
+                  window.open(
+                    `${process.env.GETGEMS_COLLECTION_URL}/${item.addr}`
+                  )
+                }
+              >
+                <img className="collection-logo" src={item.image} alt="" />
+                <span>{item.name}</span>
+                <img
+                  src="/icon-detail-arrow.svg"
+                  alt=""
+                  className="detail-arrow"
+                />
+              </div>
+            </li>
+          ))}
+        </InfiniteScroll>
+      </Spin>
       {/* <div className="daos-pagination">
         <Pagination
           total={total}
