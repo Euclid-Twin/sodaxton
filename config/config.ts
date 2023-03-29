@@ -1,7 +1,8 @@
 import { defineConfig } from "umi";
-
+import "./loadEnv";
 export default defineConfig({
   define: {
+    "process.env.BOT_TOKEN": process.env.BOT_TOKEN,
     "process.env.APP_ENV": process.env.APP_ENV,
     "process.env.CHAIN_ENV":
       process.env.APP_ENV === "prod" ? "TONmain" : "TONtest",

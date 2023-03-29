@@ -8,6 +8,7 @@ import { getCreatedCollectionList } from "@/api/apis";
 import { getUrl } from "@/utils";
 import { ReloadOutlined } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
+import useForceUpdate from "@/hooks/useForceUpdate";
 const { Search } = Input;
 export default () => {
   const { address } = useModel("app");
@@ -17,7 +18,7 @@ export default () => {
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
   const [name, setName] = useState("");
-
+  const { factor, forceUpdate } = useForceUpdate();
   const fetchCollections = async () => {
     if (address) {
       if (collections.length === 0) {
@@ -55,7 +56,7 @@ export default () => {
   // };
   useEffect(() => {
     fetchCollections();
-  }, [address, name]);
+  }, [address, name, factor]);
   return (
     <div className="page-container collections-container">
       <Back />
@@ -86,7 +87,7 @@ export default () => {
             setCollections([]);
             page.current = 1;
             setLoading(true);
-            fetchCollections();
+            forceUpdate();
           }}
         />
       </div>

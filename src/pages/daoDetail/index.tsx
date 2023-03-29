@@ -9,12 +9,13 @@ import {
 } from "@/api/proposal";
 import { CHAIN_NAME } from "@/utils/constant";
 import { formatTimestamp, getUrl } from "@/utils";
-import { Pagination, Button, Modal, Spin } from "antd";
+import { Pagination, Button, Modal, Spin, message } from "antd";
 import { history } from "umi";
 import ProposalItemStatus from "@/components/ProposalItemStatus";
 import ProposalResults from "@/components/ProposalResults";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
 import Back from "@/components/Back";
+import axios from "axios";
 const PAGE_SIZE = 10;
 
 export default () => {
@@ -26,7 +27,7 @@ export default () => {
   const [inDao, setInDao] = useState(false);
   const [proposal, setProposal] = useState<Proposal>();
   const [loading, setLoading] = useState(false);
-
+  const [chatLink, setChatLink] = useState("");
   const fetchDaoDetail = async (daoId: string) => {
     const collectionId = daoId;
     const collectionDao = await getCollectionDaoByCollectionId({
@@ -37,6 +38,24 @@ export default () => {
       dao.image = getUrl(dao.image);
       setCurrentDao(dao);
       return collectionDao;
+    }
+  };
+
+  const getChatLink = async () => {
+    try {
+      const accessToken = process.env.BOT_TOKEN;
+      const { data } = await axios.get(
+        `https://api.telegram.org/bot${accessToken}/getChat?chat_id=${id}`
+      );
+      console.log("chat: ", data);
+      if (data && data.result) {
+        const res = data.result;
+        if (res.invite_link) {
+          setChatLink(res.invite_link);
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -77,6 +96,7 @@ export default () => {
   useEffect(() => {
     if (id) {
       fetchDaoDetail(id);
+      getChatLink();
     }
   }, [id]);
   useEffect(() => {
@@ -99,17 +119,34 @@ export default () => {
       <Back />
       <h1 className="page-title">Dao detail</h1>
       <div className="dao-detail-header">
-        <img src={currentDao?.image} alt="" />
-        <div className="dao-detail-info">
-          <p className="dao-name">{currentDao?.name}</p>
-          <p className="dao-info-item">
-            <span className="label">Create date</span>
-            <span className="value">
-              {formatTimestamp(currentDao?.startDate)}
-            </span>
-          </p>
+        <div className="dao-detail">
+          <img src={currentDao?.image} alt="" />
+          <div className="dao-detail-info">
+            <p className="dao-name">{currentDao?.name}</p>
+            <p className="dao-info-item">
+              <span className="label">Create date</span>
+              <span className="value">
+                {formatTimestamp(currentDao?.startDate)}
+              </span>
+            </p>
+          </div>
         </div>
+        <Button
+          type="default"
+          className="primary-default btn-open-chat"
+          onClick={() => {
+            if (chatLink) {
+              window.open(chatLink);
+            } else {
+              message.warn("No invite link for this group.");
+            }
+          }}
+        >
+          <img width={14} src="/icon-tg.png" alt="" />
+          Open Chat
+        </Button>
       </div>
+
       <div className="proposal-list-container">
         <div className="proposal-list-header">
           <p>Proposals</p>

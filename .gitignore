@@ -12,3 +12,6 @@ ssl.conf
 build_test.sh
 build_prod.sh
 dist.tar.gz
+.env.dev
+.env.prod
+.env.test
