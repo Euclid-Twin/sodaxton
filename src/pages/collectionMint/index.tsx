@@ -56,7 +56,7 @@ export default () => {
       const values = await form.validateFields();
       console.log("values: ", values);
       if (!fileUrl) {
-        message.warn("Please select image for your collection.");
+        message.warn("Please select image for your NFT.");
         return;
       }
       const collection: any = collections.find(
@@ -118,7 +118,7 @@ export default () => {
             {
               address: collection.value,
               amount: toNano(tx.value).toString(),
-              stateInit: tx.payload,
+              payload: tx.payload,
               text: "Mint NFT",
             },
           ],
