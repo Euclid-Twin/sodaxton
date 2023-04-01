@@ -25,6 +25,9 @@ export default function HomePage() {
   const [dataUnsafe, setDataUnsafe] = useState();
   const [bindLoading, setBindLoading] = useState(false);
   const [unbindLoading, setUnbindLoading] = useState(false);
+  const [hasOtherAddrBind, setHasOtherAddrBind] = useState(false);
+  const [hasCurrentBind, setHasCurrentBind] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
@@ -35,12 +38,43 @@ export default function HomePage() {
   const getBind = async () => {
     if (address) {
       const params = {
-        addr: address,
-        // tid: "",
+        // addr: address,
+        tid: tid, //
       };
       const res: IBindResultData[] = await getBindResult(params);
+
       console.log(res);
       setBindData(res);
+      if (res.length === 0) {
+        setHasCurrentBind(false);
+        setHasOtherAddrBind(false);
+      } else {
+        const item = res.find(
+          (item) =>
+            item.addr !== address &&
+            item.platform === PLATFORM &&
+            item.tid === tid
+        );
+        if (item) {
+          setHasOtherAddrBind(true);
+          setHasCurrentBind(false);
+          message.warn(
+            `You've bound your wallet to ${item.addr} please unbind first!`
+          );
+        }
+        if (!item) {
+          const item2 = res.find(
+            (item) =>
+              item.addr === address &&
+              item.platform === PLATFORM &&
+              item.tid === tid
+          );
+          if (item2) {
+            setHasCurrentBind(true);
+          }
+        }
+      }
+      setLoaded(true);
     }
   };
   useEffect(() => {
@@ -176,80 +210,82 @@ export default function HomePage() {
     }
   };
   const handleUnbind = async () => {
-    // const msg = {
-    //   type: "unbind_addr",
-    //   data: {
-    //     address: address,
-    //   },
-    // };
-    // window.Telegram.WebApp.sendData(JSON.stringify(msg));
     try {
       setUnbindLoading(true);
-      if (walletName === WalletName.Tonkeeper) {
+      for (const item of bindData) {
         const res = await unbind({
-          addr: address,
+          addr: item.addr,
           tid: tid!,
         });
-        if (res) {
-          message.success(`Your TON address is unbound.`);
-          getBind(); //refresh page
-        } else {
-          message.error("Unbind failed.");
-        }
-      } else {
-        signConfirm();
-        const platform = PLATFORM;
-        const payloadToSign = Buffer.concat([
-          Buffer.from([0, 0, 0, 0]),
-          Buffer.from(platform + tid),
-        ]);
-        const payload = beginCell()
-          .storeBuffer(payloadToSign)
-          .endCell()
-          .toBoc({ idx: false })
-          .toString("base64");
-        const text = "Unbind your address with Telegram";
-        // Request body
-        const request = {
-          //@ts-ignore
-          seed: connect.state.seed, // Session Seed
-          //@ts-ignore
-          appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-          timeout: 5 * 60 * 1000, // 5 minut timeout
-          text: text, // Text to sign, presented to the user.
-          payload: payload, // Optional serialized to base64 string payload cell
-        };
-        const response = await connect.api.requestSign(request);
-        if (response.type === "rejected") {
-          // Handle rejection
-          message.warn("Transaction rejected");
-        } else if (response.type === "expired") {
-          // Handle expiration
-          message.warn("Transaction expired");
-        } else if (response.type === "invalid_session") {
-          // Handle expired or invalid session
-          message.warn(
-            "Session or transaction expired. Please re-login and tray again."
-          );
-        } else if (response.type === "success") {
-          // Handle successful transaction
-          const sig = response.signature;
-          const res = await unbind({
-            addr: address,
-            tid: tid!,
-            sig,
-            pubkey: getPk(connect.state.walletConfig.walletConfig),
-          });
-          if (res) {
-            message.success(`Your TON address is unbound.`);
-            getBind(); //refresh page
-          } else {
-            message.error("Unbind failed.");
-          }
-        } else {
-          throw new Error("Impossible");
-        }
       }
+      message.success(`Your TON address is unbound.`);
+      getBind(); //refresh page
+
+      // if (walletName === WalletName.Tonkeeper) {
+      //   const res = await unbind({
+      //     addr: address,
+      //     tid: tid!,
+      //   });
+      //   if (res) {
+      //     message.success(`Your TON address is unbound.`);
+      //     getBind(); //refresh page
+      //   } else {
+      //     message.error("Unbind failed.");
+      //   }
+      // } else {
+      //   signConfirm();
+      //   const platform = PLATFORM;
+      //   const payloadToSign = Buffer.concat([
+      //     Buffer.from([0, 0, 0, 0]),
+      //     Buffer.from(platform + tid),
+      //   ]);
+      //   const payload = beginCell()
+      //     .storeBuffer(payloadToSign)
+      //     .endCell()
+      //     .toBoc({ idx: false })
+      //     .toString("base64");
+      //   const text = "Unbind your address with Telegram";
+      //   // Request body
+      //   const request = {
+      //     //@ts-ignore
+      //     seed: connect.state.seed, // Session Seed
+      //     //@ts-ignore
+      //     appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
+      //     timeout: 5 * 60 * 1000, // 5 minut timeout
+      //     text: text, // Text to sign, presented to the user.
+      //     payload: payload, // Optional serialized to base64 string payload cell
+      //   };
+      //   const response = await connect.api.requestSign(request);
+      //   if (response.type === "rejected") {
+      //     // Handle rejection
+      //     message.warn("Transaction rejected");
+      //   } else if (response.type === "expired") {
+      //     // Handle expiration
+      //     message.warn("Transaction expired");
+      //   } else if (response.type === "invalid_session") {
+      //     // Handle expired or invalid session
+      //     message.warn(
+      //       "Session or transaction expired. Please re-login and tray again."
+      //     );
+      //   } else if (response.type === "success") {
+      //     // Handle successful transaction
+      //     const sig = response.signature;
+      //     const res = await unbind({
+      //       addr: address,
+      //       tid: tid!,
+      //       sig,
+      //       pubkey: getPk(connect.state.walletConfig.walletConfig),
+      //     });
+      //     if (res) {
+      //       message.success(`Your TON address is unbound.`);
+      //       getBind(); //refresh page
+      //     } else {
+      //       message.error("Unbind failed.");
+      //     }
+      //   } else {
+      //     throw new Error("Impossible");
+      //   }
+      // }
       setUnbindLoading(false);
     } catch (e) {
       message.error("Unbind failed.");
@@ -292,7 +328,7 @@ export default function HomePage() {
             />
           </div>
           <div className="bind-addr">
-            {bindData.length === 0 && (
+            {loaded && bindData.length === 0 && (
               <Button
                 type="primary"
                 className="primary-btn bind-btn"
@@ -302,7 +338,7 @@ export default function HomePage() {
                 Bind your address with Telegram
               </Button>
             )}
-            {bindData.length > 0 && (
+            {((loaded && hasCurrentBind) || (loaded && hasOtherAddrBind)) && (
               <Button
                 type="primary"
                 className="default-btn bind-btn"
@@ -312,7 +348,7 @@ export default function HomePage() {
                 Unbind your address with Telegram
               </Button>
             )}
-            {bindData.length > 0 && (
+            {loaded && hasCurrentBind && (
               <Button
                 type="primary"
                 className="primary-btn bind-btn"
@@ -321,7 +357,7 @@ export default function HomePage() {
                 View DAOs
               </Button>
             )}
-            {bindData.length > 0 && (
+            {loaded && hasCurrentBind && (
               <Button
                 type="primary"
                 className="primary-btn bind-btn"

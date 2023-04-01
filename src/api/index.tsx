@@ -201,6 +201,8 @@ export const genNFTMintTx = async (params: {
     trait_type: string;
     value: string;
   }[];
+  content_type?: string;
+  content_url?: string;
 }) => {
   const url = `${API_HOST}/nft/item/gen`;
   const data = {
@@ -215,6 +217,8 @@ export const genNFTMintTx = async (params: {
       image: params.image,
       description: params.description,
       attributes: params.attributes || [],
+      content_type: params.content_type || "image",
+      content_url: params.content_url || params.image,
     },
   };
   const res = await httpRequest({
