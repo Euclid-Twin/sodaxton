@@ -21,19 +21,32 @@ import { createProposal } from "@/api/server";
 import { history, useLocation, useModel } from "umi";
 import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
-import { uploadFile, genCollectionDeployTx, genNFTMintTx } from "@/api";
-import { getCreatedCollectionList } from "@/api/apis";
-import { toNano } from "ton";
+import {
+  uploadFile,
+  genCollectionDeployTx,
+  genNFTMintTx,
+  getChatMember,
+} from "@/api";
+import { getCollectionByContract, getCreatedCollectionList } from "@/api/apis";
+import { toNano, Address } from "ton";
 import { useTonhubConnect } from "react-ton-x";
 import { TxConfirmModal } from "../collectionCreate";
 import { WalletName } from "@/models/app";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
+import { getUrl } from "@/utils";
+import { request } from "umi";
+import { getBindResult, IBindResultData } from "@/api/apis";
+
+const TonWeb = require("tonweb");
 
 export default () => {
   const { address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
-  const [fileUrl, setFileUrl] = useState("");
+  const [fileUrl, setFileUrl] = useState(
+    "ipfs://QmP1f74YEAj6Hn9nTwFY2PxZUtW1srDkqf8jcLzaD3H98p"
+  );
+  const [file, setFile] = useState(null);
   const [imgPreview, setImgPreview] = useState();
   const [collections, setCollections] = useState([]);
   const connect = useTonhubConnect();
@@ -46,6 +59,41 @@ export default () => {
       return process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox";
     }
   }, [walletName]);
+  const sendToChat = async (collectionContract: string, nftId: number) => {
+    try {
+      const collection = await getCollectionByContract(collectionContract);
+
+      if (collection && collection.dao) {
+        const chatId = collection.id;
+        const binds = await getBindResult({
+          addr: address,
+        });
+        const tid = binds[0].tid;
+        const chatMember = await getChatMember(chatId, Number(tid));
+        const values = await form.validateFields();
+        const caption = `
+NFT ID: ${nftId}
+Name: ${values.name}
+Description: ${values.description}
+Attributes: ${JSON.stringify(values.attributes)}
+@${chatMember || ""}
+        `;
+        const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendPhoto`;
+        const formData = new FormData();
+        formData.append("photo", file);
+        formData.append("chat_id", chatId);
+        formData.append("caption", caption);
+        const res = await request(url, {
+          method: "POST",
+          data: formData,
+          requestType: "form",
+        });
+        console.log("sendToChat: ", res);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
   const handleCreate = async () => {
     if (!address) {
       message.warn(`Please login with ${walletDisplay}.`);
@@ -106,6 +154,7 @@ export default () => {
         } else if (response.type === "success") {
           // Handle successful transaction
           message.success("Mint NFT successfully.");
+          await sendToChat(collection.value, tx.token_id);
           history.goBack();
           Modal.destroyAll();
         } else {
@@ -127,6 +176,7 @@ export default () => {
         const resp = await tonConnectUi.connector.sendTransaction(_tx);
         console.log("tonkeeper resp: ", resp);
         message.success("Mint NFT successfully.");
+        await sendToChat(collection.value, tx.token_id);
         history.goBack();
         Modal.destroyAll();
       }
@@ -176,7 +226,7 @@ export default () => {
     maxCount: 1,
     itemRender: () => "",
     beforeUpload: (file) => {
-      // setFile(file);
+      setFile(file);
       return false;
     },
     onChange: async (info: any) => {

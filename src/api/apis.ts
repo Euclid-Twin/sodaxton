@@ -339,3 +339,9 @@ export const getCreatedCollectionList = async (params: {
   const res = await httpRequest({ url, params, type: HttpRequestType.GET });
   return res;
 };
+
+export const getCollectionByContract = async (contract: string) => {
+  const url = `${API_HOST}/collection?contract=${contract}`;
+  const res = await httpRequest({ url, params: {}, type: HttpRequestType.GET });
+  return res.data;
+};

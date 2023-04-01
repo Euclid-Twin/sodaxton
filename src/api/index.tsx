@@ -245,3 +245,14 @@ export const uploadFile = async (files: File[]) => {
   console.log("uploadFile: ", res);
   return res.data;
 };
+
+export const getChatMember = async (chatId: number, userId: number) => {
+  const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatMember?chat_id=${chatId}&user_id=${userId}`;
+  const res = await httpRequest({
+    url,
+    params: null,
+    type: HttpRequestType.GET,
+  });
+  const { user } = res.result;
+  return user?.username;
+};
