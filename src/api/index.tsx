@@ -256,3 +256,15 @@ export const getChatMember = async (chatId: number, userId: number) => {
   const { user } = res.result;
   return user?.username;
 };
+
+export const createNewStickerSet = async (
+  name: string,
+  userId: number,
+  file: File
+) => {
+  const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/createNewStickerSet`;
+  const formData = new FormData();
+  const res = await httpRequest({
+    url,
+  });
+};

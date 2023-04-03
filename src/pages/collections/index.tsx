@@ -5,10 +5,12 @@ import Back from "@/components/Back";
 import { PAGE_SIZE } from "@/utils/constant";
 import { useModel, history } from "umi";
 import { getCreatedCollectionList } from "@/api/apis";
-import { getUrl } from "@/utils";
+import { formatAddress, getUrl } from "@/utils";
 import { ReloadOutlined } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import useForceUpdate from "@/hooks/useForceUpdate";
+import { fallbackCopyTextToClipboard } from "@/utils";
+
 const { Search } = Input;
 export default () => {
   const { address } = useModel("app");
@@ -112,21 +114,34 @@ export default () => {
         >
           {collections.map((item) => (
             <li>
-              <div
-                className="collection-item"
-                onClick={() =>
-                  window.open(
-                    `${process.env.GETGEMS_COLLECTION_URL}/${item.addr}`
-                  )
-                }
-              >
-                <img className="collection-logo" src={item.image} alt="" />
-                <span>{item.name}</span>
-                <img
-                  src="/icon-detail-arrow.svg"
-                  alt=""
-                  className="detail-arrow"
-                />
+              <div className="collection-item">
+                <div
+                  className="collection-info"
+                  onClick={() => {
+                    fallbackCopyTextToClipboard(
+                      item.addr,
+                      "Collection contract copied!"
+                    );
+                  }}
+                >
+                  <img className="collection-logo" src={item.image} alt="" />
+                  <span>{item.name}</span>
+                </div>
+
+                <div
+                  className="collection-link"
+                  onClick={() =>
+                    window.open(
+                      `${process.env.GETGEMS_COLLECTION_URL}/${item.addr}`
+                    )
+                  }
+                >
+                  <img
+                    src="/icon-detail-arrow.svg"
+                    alt=""
+                    className="detail-arrow"
+                  />
+                </div>
               </div>
             </li>
           ))}

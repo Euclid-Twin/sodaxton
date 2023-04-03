@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { message } from "antd";
+import TonWeb from "tonweb";
 
 export const formatTimestamp = (
   timestamp?: number | string,
@@ -11,7 +12,7 @@ export const formatTimestamp = (
 
 export const sha3 = (str: string) => {};
 
-export function fallbackCopyTextToClipboard(text: string) {
+export function fallbackCopyTextToClipboard(text: string, tip?: string) {
   var textArea = document.createElement("textarea");
   textArea.value = text;
 
@@ -27,7 +28,7 @@ export function fallbackCopyTextToClipboard(text: string) {
   try {
     var successful = document.execCommand("copy");
     var msg = successful ? "successful" : "unsuccessful";
-    message.success("Copied!");
+    message.success(tip || "Copied!");
     console.log("Fallback: Copying text command was " + msg);
   } catch (err) {
     // message.error('Copy Failed');
@@ -49,4 +50,8 @@ export const getUrl = (uri: string, config?: any): string => {
   }
   source = `https://ipfs.io/ipfs/${source}`;
   return source;
+};
+
+export const formatAddress = (addr: string) => {
+  return new TonWeb.Address(addr).toString(true, true, true);
 };

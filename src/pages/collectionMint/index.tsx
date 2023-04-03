@@ -71,18 +71,38 @@ export default () => {
         const tid = binds[0].tid;
         const chatMember = await getChatMember(chatId, Number(tid));
         const values = await form.validateFields();
-        const caption = `
-NFT ID: ${nftId}
+        let caption = `
 Name: ${values.name}
-Description: ${values.description}
-Attributes: ${JSON.stringify(values.attributes)}
-@${chatMember || ""}
-        `;
+Collection: ${collectionContract}, NFT Id: ${nftId}.
+Description: ${values.description}\n`;
+        if (values.attributes && values.attributes.length > 0) {
+          caption += `Attributes: ${JSON.stringify(values.attributes)}\n`;
+        }
+        caption += `@${chatMember || ""}`;
+        const reply_markup = {
+          inline_keyboard: [
+            [
+              {
+                text: "Like",
+                callback_data: "like",
+              },
+              {
+                text: "Dislike",
+                callback_data: "dislike",
+              },
+              {
+                text: "Follow",
+                callback_data: "follow",
+              },
+            ],
+          ],
+        };
         const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendPhoto`;
         const formData = new FormData();
         formData.append("photo", file);
         formData.append("chat_id", chatId);
         formData.append("caption", caption);
+        formData.append("reply_markup", JSON.stringify(reply_markup));
         const res = await request(url, {
           method: "POST",
           data: formData,
@@ -94,6 +114,8 @@ Attributes: ${JSON.stringify(values.attributes)}
       console.log(e);
     }
   };
+
+  const addSticker = async () => {};
   const handleCreate = async () => {
     if (!address) {
       message.warn(`Please login with ${walletDisplay}.`);
@@ -119,7 +141,7 @@ Attributes: ${JSON.stringify(values.attributes)}
         name: values.name,
         description: values.description,
         image: fileUrl,
-        attributes: values.attributes,
+        attributes: values.attributes || [],
       };
       const tx = await genNFTMintTx(params);
       TxConfirmModal(walletDisplay);

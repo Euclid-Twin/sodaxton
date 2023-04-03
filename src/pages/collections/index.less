@@ -37,31 +37,41 @@
 
       box-shadow: 0px 4px 10px rgba(56, 68, 251, 0.08);
       border-radius: 12px;
-      cursor: pointer;
+      // cursor: pointer;
+      justify-content: space-between;
       :hover {
         // background-color: #ccc;
       }
-      > .collection-logo {
-        width: 80px;
-        height: 80px;
-        margin-right: 12px;
-        border-radius: 24px;
-      }
-      > span {
-        font-weight: 500;
-        font-size: 16px;
-        line-height: 24px;
-        overflow: hidden;
+      > .collection-info {
+        cursor: pointer;
+        > .collection-logo {
+          width: 80px;
+          height: 80px;
+          margin-right: 12px;
+          border-radius: 24px;
+        }
+        > span {
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 24px;
+          overflow: hidden;
 
-        word-break: break-all;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        color: #19163d;
-        margin-right: 24px;
+          word-break: break-all;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          color: #19163d;
+          margin-right: 24px;
+        }
       }
-      > .detail-arrow {
-        position: absolute;
-        right: 12px;
+      > .collection-link {
+        display: flex;
+        width: 30px;
+        height: 30px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        > .detail-arrow {
+        }
       }
     }
   }
