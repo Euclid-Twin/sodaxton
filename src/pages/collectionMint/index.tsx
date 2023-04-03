@@ -43,14 +43,13 @@ export default () => {
   const { address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
-  const [fileUrl, setFileUrl] = useState(
-    "ipfs://QmP1f74YEAj6Hn9nTwFY2PxZUtW1srDkqf8jcLzaD3H98p"
-  );
+  const [fileUrl, setFileUrl] = useState();
   const [file, setFile] = useState(null);
   const [imgPreview, setImgPreview] = useState();
   const [collections, setCollections] = useState([]);
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   const walletDisplay = useMemo(() => {
     if (walletName === WalletName.Tonkeeper) {
@@ -219,6 +218,8 @@ Description: ${values.description}\n`;
     if (address) {
       const res = await getCreatedCollectionList({
         creator: address,
+        page: 1,
+        gap: 1000, //TODO
       });
       const _list = res.data.filter((item) => item.deployed);
       const list = _list.map((item: any) => ({
@@ -252,12 +253,19 @@ Description: ${values.description}\n`;
       return false;
     },
     onChange: async (info: any) => {
-      if (info.file) {
-        getBase64(info.file).then((data: any) => setImgPreview(data));
-        const ipfsRes = await uploadFile([info.file]);
-        if (ipfsRes[0]) {
-          setFileUrl(ipfsRes[0]);
+      try {
+        if (info.file) {
+          setUploadLoading(true);
+          getBase64(info.file).then((data: any) => setImgPreview(data));
+          const ipfsRes = await uploadFile([info.file]);
+          if (ipfsRes[0]) {
+            setFileUrl(ipfsRes[0]);
+          }
         }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setUploadLoading(false);
       }
     },
   };
@@ -273,6 +281,7 @@ Description: ${values.description}\n`;
         layout="vertical"
         className="common-form collection-form"
         initialValues={{ voter_type: 1 }}
+        onFinish={handleCreate}
       >
         <div className="form-left-content">
           <Form.Item
@@ -316,7 +325,9 @@ Description: ${values.description}\n`;
           <Form.Item label="Image" name="image">
             <div className="img-upload-container">
               <Upload className="img-upload" {...uploadProps}>
-                <Button icon={<UploadOutlined />}>Select image</Button>
+                <Button loading={uploadLoading} icon={<UploadOutlined />}>
+                  Select image
+                </Button>
               </Upload>
               {imgPreview && (
                 <img src={imgPreview} alt="" className="upload-preview" />
@@ -339,26 +350,27 @@ Description: ${values.description}\n`;
             <AttributeFormItems />
           </Form.Item>
         </div>
+        <div className="collection-footer-btns">
+          <Button
+            type="default"
+            className="default-btn btn-cancel"
+            onClick={() => {
+              history.goBack();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="primary"
+            className="primary-btn btn-create"
+            loading={submitting}
+            disabled={!fileUrl}
+            htmlType="submit"
+          >
+            Create
+          </Button>
+        </div>
       </Form>
-      <div className="collection-footer-btns">
-        <Button
-          type="default"
-          className="default-btn btn-cancel"
-          onClick={() => {
-            history.goBack();
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="primary"
-          className="primary-btn btn-create"
-          onClick={handleCreate}
-          loading={submitting}
-        >
-          Create
-        </Button>
-      </div>
     </div>
   );
 };

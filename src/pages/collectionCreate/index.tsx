@@ -55,6 +55,7 @@ export default () => {
   const [imgPreview, setImgPreview] = useState("");
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   const walletDisplay = useMemo(() => {
     if (walletName === WalletName.Tonkeeper) {
@@ -171,14 +172,20 @@ export default () => {
       return false;
     },
     onChange: async (info: any) => {
-      if (info.file) {
-        getBase64(info.file).then((data: any) => setImgPreview(data));
-        const ipfsRes = await uploadFile([info.file]);
-        if (ipfsRes[0]) {
-          setFileUrl(ipfsRes[0]);
+      try {
+        if (info.file) {
+          setUploadLoading(true);
+          getBase64(info.file).then((data: any) => setImgPreview(data));
+          const ipfsRes = await uploadFile([info.file]);
+          if (ipfsRes[0]) {
+            setFileUrl(ipfsRes[0]);
+          }
         }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setUploadLoading(false);
       }
-
       //   setFile(info.file);
     },
   };
@@ -194,6 +201,7 @@ export default () => {
         layout="vertical"
         className="common-form collection-form"
         initialValues={{ voter_type: 1 }}
+        onFinish={handleCreate}
       >
         <div className="form-left-content">
           <Form.Item
@@ -237,7 +245,9 @@ export default () => {
           <Form.Item label="Image" name="image">
             <div className="img-upload-container">
               <Upload className="img-upload" {...uploadProps}>
-                <Button icon={<UploadOutlined />}>Select image</Button>
+                <Button loading={uploadLoading} icon={<UploadOutlined />}>
+                  Select image
+                </Button>
               </Upload>
               {imgPreview && (
                 <img src={imgPreview} alt="" className="upload-preview" />
@@ -245,26 +255,27 @@ export default () => {
             </div>
           </Form.Item>
         </div>
+        <div className="collection-footer-btns">
+          <Button
+            type="default"
+            className="default-btn btn-cancel"
+            onClick={() => {
+              history.goBack();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="primary"
+            className="primary-btn btn-create"
+            loading={submitting}
+            htmlType="submit"
+            disabled={!fileUrl}
+          >
+            Create
+          </Button>
+        </div>
       </Form>
-      <div className="collection-footer-btns">
-        <Button
-          type="default"
-          className="default-btn btn-cancel"
-          onClick={() => {
-            history.goBack();
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="primary"
-          className="primary-btn btn-create"
-          onClick={handleCreate}
-          loading={submitting}
-        >
-          Create
-        </Button>
-      </div>
     </div>
   );
 };

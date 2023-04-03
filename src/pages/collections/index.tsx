@@ -104,13 +104,18 @@ export default () => {
       />
       <Spin spinning={loading}>
         <InfiniteScroll
-          dataLength={total}
+          dataLength={collections.length}
           next={fetchCollections}
           hasMore={hasMore}
           loader={<Spin spinning={collections.length > 0}></Spin>}
           // scrollableTarget={id}
           height={500}
           className="collection-list"
+          endMessage={
+            <p style={{ textAlign: "center" }}>
+              <b>Yay! You have seen it all</b>
+            </p>
+          }
         >
           {collections.map((item) => (
             <li>

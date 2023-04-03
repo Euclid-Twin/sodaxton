@@ -110,13 +110,18 @@ export default () => {
       </div>
       <Spin spinning={loading}>
         <InfiniteScroll
-          dataLength={total}
+          dataLength={daos.length}
           next={fetchDaos}
           hasMore={hasMore}
           loader={<Spin spinning={daos.length > 0}></Spin>}
           // scrollableTarget={id}
           height={500}
           className="dao-list"
+          endMessage={
+            <p style={{ textAlign: "center" }}>
+              <b>Yay! You have seen it all</b>
+            </p>
+          }
         >
           {daos.map((item) => (
             <li>
