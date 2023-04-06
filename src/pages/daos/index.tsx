@@ -139,6 +139,15 @@ export default () => {
               </div>
             </li>
           ))}
+          {daos.length === 0 && (
+            <p style={{ textAlign: "center" }}>
+              <b>{`${
+                listSwitch === ListSwitchEnum.My_List
+                  ? "You don't have any DAO."
+                  : ""
+              }`}</b>
+            </p>
+          )}
         </InfiniteScroll>
       </Spin>
       {/* <div className="daos-pagination">
