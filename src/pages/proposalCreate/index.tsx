@@ -10,6 +10,7 @@ import {
   DatePicker,
   Tooltip,
   InputNumber,
+  Checkbox,
 } from "antd";
 const TextArea = Input.TextArea;
 const { RangePicker } = DatePicker;
@@ -42,6 +43,7 @@ export default () => {
   const { currentDao, address } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState("");
+  const [startNow, setStartNow] = useState(false);
   const [form] = Form.useForm();
 
   const handleCreate = async () => {
@@ -54,7 +56,12 @@ export default () => {
       const values = await form.validateFields();
       // const startTime = values.period[0].valueOf();
       // const endTime = values.period[1].valueOf();
-      const startTime = values.startTime.valueOf() + 5 * 60 * 1000;
+      let startTime;
+      if (startNow) {
+        startTime = Date.now() + 5 * 60 * 1000;
+      } else {
+        startTime = values.startTime.valueOf();
+      }
       const endTime = values.endTime.valueOf();
       console.log();
       const params = {
@@ -73,7 +80,10 @@ export default () => {
       };
       const result: any = await createProposal(params);
       if (result && result.code === SUCCESS_CODE) {
-        message.success("Your proposal is created successfully.");
+        message.success(`Your proposal is created successfully.${
+          startNow ? " The proposal will be active in five minutes." : ""
+        }
+        `);
         history.goBack();
         setSubmitting(false);
       } else {
@@ -107,8 +117,8 @@ export default () => {
   };
   const disabledDate = (current: any) => {
     // Can not select days before today and today
-    // return current && current < moment().startOf("day");
-    return current.unix() * 1000 < Date.now();
+    return current && current < moment().startOf("day");
+    // return current.unix() * 1000 < Date.now();
   };
 
   const disabledStartTime = (current: any) => {
@@ -182,14 +192,25 @@ export default () => {
           <Form.Item
             label="Period*"
             name="startTime"
-            rules={[{ required: true, message: "Start date is required" }]}
+            rules={[{ required: !startNow, message: "Start date is required" }]}
           >
+            <Checkbox
+              checked={startNow}
+              onChange={(e) => {
+                setStartNow(e.target.checked);
+              }}
+              className="proposal-start-now"
+            >
+              Start Now
+            </Checkbox>
             <DatePicker
               showTime
+              showNow={false}
               placeholder="Start date"
               disabledDate={disabledDate}
               // disabledTime={disabledStartTime}
               className="proposal-date-picker"
+              disabled={startNow}
             />
           </Form.Item>
           <Form.Item
