@@ -35,7 +35,11 @@ import { WalletName } from "@/models/app";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { getUrl } from "@/utils";
 import { request } from "umi";
-import { getBindResult, IBindResultData } from "@/api/apis";
+import {
+  getBindResult,
+  IBindResultData,
+  saveTelegramNFTMsgData,
+} from "@/api/apis";
 
 const TonWeb = require("tonweb");
 
@@ -70,14 +74,18 @@ export default () => {
         const tid = binds[0].tid;
         const chatMember = await getChatMember(chatId, Number(tid));
         const values = await form.validateFields();
-        let caption = `
-Name: ${values.name}
-Collection: ${collectionContract}, NFT Id: ${nftId}.
-Description: ${values.description}\n`;
+        let caption = `#${nftId} ${values.name}\n` + `${values.description}\n`;
         if (values.attributes && values.attributes.length > 0) {
-          caption += `Attributes: ${JSON.stringify(values.attributes)}\n`;
+          for (const item of values.attributes) {
+            caption += `${item.trait_type}: ${item.value};`;
+          }
         }
-        caption += `@${chatMember || ""}`;
+        if (caption.length > 1000) {
+          caption = caption.substring(0, 1000);
+        }
+        if (chatMember) {
+          caption += `\n@${chatMember || ""}`;
+        }
         const reply_markup = {
           inline_keyboard: [
             [
@@ -108,6 +116,15 @@ Description: ${values.description}\n`;
           requestType: "form",
         });
         console.log("sendToChat: ", res);
+        if (res.ok && res.result) {
+          const saveRes = await saveTelegramNFTMsgData({
+            group_id: chatId,
+            message_id: res.result.message_id,
+            type: "JSON",
+            data: JSON.stringify(res.result),
+          });
+          console.log("saveRes: ", saveRes);
+        }
       }
     } catch (e) {
       console.log(e);
@@ -203,7 +220,7 @@ Description: ${values.description}\n`;
       }
       setSubmitting(false);
     } catch (e) {
-      if (walletName === WalletName.Tonkeeper) {
+      if (walletName === WalletName.Tonkeeper && e.message) {
         message.warn(e.message);
       }
       message.error("Mint NFT failed.");

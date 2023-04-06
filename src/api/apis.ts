@@ -5,6 +5,7 @@ import {
   SUCCESS_CODE,
 } from "@/utils/request";
 import { CHAIN_NAME } from "@/utils/constant";
+import { formatAddress } from "@/utils";
 export enum AssetType {
   FT = 0,
   PFT = 1,
@@ -341,7 +342,32 @@ export const getCreatedCollectionList = async (params: {
 };
 
 export const getCollectionByContract = async (contract: string) => {
-  const url = `${API_HOST}/collection?contract=${contract}`;
-  const res = await httpRequest({ url, params: {}, type: HttpRequestType.GET });
+  const _contract = formatAddress(contract);
+  try {
+    const url = `${API_HOST}/collection?contract=${_contract}`;
+    const res = await httpRequest({
+      url,
+      params: {},
+      type: HttpRequestType.GET,
+    });
+    return res.data;
+  } catch (e) {
+    console.log("getCollectionByContract", e);
+  }
+};
+
+export const saveTelegramNFTMsgData = async (params: {
+  group_id: string;
+  message_id: string;
+  type: string;
+  data: string;
+}) => {
+  const url = `${API_HOST}/tg/message`;
+  const res = await httpRequest({
+    url,
+    params: params,
+    type: HttpRequestType.POST,
+  });
+  console.log("[saveTelegramNFTMsgData]: ", params, res);
   return res.data;
 };

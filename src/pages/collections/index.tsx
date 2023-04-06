@@ -124,7 +124,7 @@ export default () => {
                   className="collection-info"
                   onClick={() => {
                     fallbackCopyTextToClipboard(
-                      item.addr,
+                      formatAddress(item.addr),
                       "Collection contract copied!"
                     );
                   }}

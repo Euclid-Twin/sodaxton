@@ -164,6 +164,7 @@ export const genCollectionDeployTx = async (params: {
   image: string;
   description: string;
   social_links?: string[];
+  enable_other_mint?: boolean;
 }) => {
   const url = `${API_HOST}/nft/collection/gen`;
   const data = {
@@ -171,6 +172,7 @@ export const genCollectionDeployTx = async (params: {
     owner: params.owner,
     royalty: 0.1,
     royalty_address: params.owner,
+    enable_other_mint: params.enable_other_mint || false,
     metadata: {
       name: params.name,
       image: params.image,
@@ -247,14 +249,18 @@ export const uploadFile = async (files: File[]) => {
 };
 
 export const getChatMember = async (chatId: number, userId: number) => {
-  const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatMember?chat_id=${chatId}&user_id=${userId}`;
-  const res = await httpRequest({
-    url,
-    params: null,
-    type: HttpRequestType.GET,
-  });
-  const { user } = res.result;
-  return user?.username;
+  try {
+    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatMember?chat_id=${chatId}&user_id=${userId}`;
+    const res = await httpRequest({
+      url,
+      params: null,
+      type: HttpRequestType.GET,
+    });
+    const { user } = res.result;
+    return user?.username;
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 export const createNewStickerSet = async (

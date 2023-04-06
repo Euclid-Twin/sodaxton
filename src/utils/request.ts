@@ -24,12 +24,14 @@ export async function httpRequest(req: any) {
         data: params,
         requestType,
         headers: { authorization: "TG Robot Platwin Soda" },
+        errorHandler: () => {},
       });
     } else {
       res = await request(url, {
         method: "GET",
         params,
         requestType,
+        errorHandler: () => {},
       });
     }
     return res;

@@ -26,6 +26,7 @@ import { SUCCESS_CODE } from "@/utils/request";
 import { uploadFile, genCollectionDeployTx } from "@/api";
 import { useTonhubConnect } from "react-ton-x";
 import { WalletName } from "@/models/app";
+import { formatAddress } from "@/utils";
 
 export const TxConfirmModal = (wallet: string) => {
   Modal.info({
@@ -48,6 +49,9 @@ export const TxConfirmModal = (wallet: string) => {
 };
 
 export default () => {
+  // const a = formatAddress("UQAofX6y65MnGkDc7Aj8LELOjdajny6tz6IeEUcycvp9nmiN");
+  // const b = formatAddress("EQAofX6y65MnGkDc7Aj8LELOjdajny6tz6IeEUcycvp9njVI");
+  // console.log("a=b: ", a, b);
   const { address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
