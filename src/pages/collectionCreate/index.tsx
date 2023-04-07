@@ -11,6 +11,7 @@ import {
   Tooltip,
   InputNumber,
   Upload,
+  Checkbox,
 } from "antd";
 const TextArea = Input.TextArea;
 import { toNano } from "ton";
@@ -60,7 +61,7 @@ export default () => {
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
   const [uploadLoading, setUploadLoading] = useState(false);
-
+  const [everyoneMint, setEveryoneMint] = useState(false);
   const walletDisplay = useMemo(() => {
     if (walletName === WalletName.Tonkeeper) {
       return WalletName.Tonkeeper;
@@ -88,6 +89,7 @@ export default () => {
         name: values.name,
         description: values.description,
         image: fileUrl,
+        enable_other_mint: everyoneMint,
       };
 
       const tx = await genCollectionDeployTx(params);
@@ -246,6 +248,7 @@ export default () => {
               placeholder="Description"
             />
           </Form.Item>
+
           <Form.Item label="Image" name="image">
             <div className="img-upload-container">
               <Upload className="img-upload" {...uploadProps}>
@@ -258,6 +261,15 @@ export default () => {
               )}
             </div>
           </Form.Item>
+          <Checkbox
+            checked={everyoneMint}
+            onChange={(e) => {
+              setEveryoneMint(e.target.checked);
+            }}
+            className="checkbox-everyone-mint"
+          >
+            Start Now
+          </Checkbox>
         </div>
         <div className="collection-footer-btns">
           <Button

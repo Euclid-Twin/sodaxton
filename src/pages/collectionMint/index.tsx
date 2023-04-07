@@ -11,6 +11,7 @@ import {
   Tooltip,
   InputNumber,
   Upload,
+  Checkbox,
 } from "antd";
 const TextArea = Input.TextArea;
 import AttributeFormItems from "@/components/AttributeFormItems";
