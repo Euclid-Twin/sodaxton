@@ -97,6 +97,7 @@ export default () => {
           show={proposal.id !== undefined}
           detail={proposal}
           onClose={() => setProposal(undefined)}
+          noVote={true}
         />
       )}
     </div>

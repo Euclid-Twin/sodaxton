@@ -356,7 +356,7 @@ export const getCollectionByContract = async (contract: string) => {
   }
 };
 
-export const saveTelegramNFTMsgData = async (params: {
+export const saveTelegramMsgData = async (params: {
   group_id: string;
   message_id: string;
   type: string;

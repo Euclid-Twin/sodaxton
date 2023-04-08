@@ -39,7 +39,7 @@ import { request } from "umi";
 import {
   getBindResult,
   IBindResultData,
-  saveTelegramNFTMsgData,
+  saveTelegramMsgData,
 } from "@/api/apis";
 
 const TonWeb = require("tonweb");
@@ -118,7 +118,7 @@ export default () => {
         });
         console.log("sendToChat: ", res);
         if (res.ok && res.result) {
-          const saveRes = await saveTelegramNFTMsgData({
+          const saveRes = await saveTelegramMsgData({
             group_id: chatId,
             message_id: res.result.message_id,
             type: "JSON",

@@ -55,3 +55,14 @@ export const getUrl = (uri: string, config?: any): string => {
 export const formatAddress = (addr: string) => {
   return new TonWeb.Address(addr).toString(true, true, true);
 };
+
+export const getCountdownTime = (timeMilSecs: number) => {
+  const now = new Date().getTime();
+  const distance = timeMilSecs - now;
+
+  const hours = Math.floor(distance / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  return [hours, minutes, seconds];
+};

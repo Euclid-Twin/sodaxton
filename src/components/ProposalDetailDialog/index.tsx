@@ -21,10 +21,11 @@ interface IProps {
   detail: Proposal;
   onClose: (updatedProposalId?: string) => void;
   inDao?: boolean;
+  noVote?: boolean;
 }
 
 export default (props: IProps) => {
-  const { show, detail, onClose, inDao } = props;
+  const { show, detail, onClose, inDao, noVote } = props;
   const [vote, setVote] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const { currentDao, address } = useModel("app");
@@ -151,7 +152,7 @@ export default (props: IProps) => {
         </div>
         <div className="vote-submit-results-container">
           <ProposalResults items={detail.items} results={detail.results} />
-          {isOpen && canVote && (
+          {!noVote && isOpen && canVote && (
             <div className="vote-container">
               <p className="vote-title">
                 {voted ? "Your vote" : "Cast your vote"}

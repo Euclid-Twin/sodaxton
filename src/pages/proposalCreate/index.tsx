@@ -25,6 +25,9 @@ import { createProposal } from "@/api/server";
 import { history, useLocation, useModel } from "umi";
 import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
+import { request } from "umi";
+import { getCountdownTime } from "@/utils/index";
+import { saveTelegramMsgData } from "@/api/apis";
 const VoterBallotOptions = [
   {
     value: 1,
@@ -45,6 +48,60 @@ export default () => {
   const [startTime, setStartTime] = useState("");
   const [startNow, setStartNow] = useState(false);
   const [form] = Form.useForm();
+
+  const sendToChat = async (proposal: any) => {
+    try {
+      const text =
+        `${proposal.title}(${proposal.ballotThreshold})\n` +
+        `${proposal.description}\n` +
+        `${VoterBallotOptions[proposal.voterType - 1].label}\n`;
+      const reply_markup = {
+        inline_keyboard: [
+          ...proposal.items.map((item: string, index: number) => [
+            {
+              text: item,
+              callback_data: `soton_vote:${proposal.id}:${index}`,
+            },
+          ]),
+        ],
+      };
+      const msg = {
+        chat_id: proposal.daoId,
+        text,
+        reply_markup,
+      };
+      const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
+      const res = await request(url, {
+        method: "POST",
+        data: msg,
+      });
+      console.log("sendToChat: ", res);
+      const countdowns = getCountdownTime(proposal.startTime);
+      const msg2 = {
+        chat_id: proposal.daoId,
+        text: `This proposal will start in ${countdowns[0]}:${countdowns[1]}:${countdowns[2]}.`,
+        reply_to_message_id: res?.result?.message_id,
+      };
+      if (res.ok && res.result) {
+        saveTelegramMsgData({
+          group_id: proposal.daoId,
+          message_id: res.result.message_id,
+          type: "JSON",
+          data: JSON.stringify(res.result),
+        }).then((saveRes) => {
+          console.log("saveRes: ", saveRes);
+        });
+      }
+      request(url, {
+        method: "POST",
+        data: msg2,
+      }).then((res2) => {
+        console.log("sendToChat: ", res2);
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const handleCreate = async () => {
     if (!address) {
@@ -80,6 +137,9 @@ export default () => {
       };
       const result: any = await createProposal(params);
       if (result && result.code === SUCCESS_CODE) {
+        const { id } = result.data;
+        params.id = id;
+        await sendToChat(params);
         message.success(`Your proposal is created successfully.${
           startNow ? " The proposal will be active in five minutes." : ""
         }
