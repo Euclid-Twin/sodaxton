@@ -13,6 +13,19 @@ export default (props?: IProps) => {
   const [inputVal, setInputVal] = useState("");
   const [error, setError] = useState("");
 
+  const validateOption = (option: string) => {
+    if (option && option.includes("|")) {
+      setError('Please do not enter "|".');
+      return false;
+    } else if (option.length > 40) {
+      setError("Option must less than 40 characters.");
+      return false;
+    } else {
+      setError("");
+      return true;
+    }
+  };
+
   const handleDelete = (index: number) => {
     const _values = [...value];
     _values.splice(index);
@@ -20,11 +33,8 @@ export default (props?: IProps) => {
   };
   const handleSave = () => {
     if (!inputVal) return;
-    if (inputVal.includes("|")) {
-      setError('Please do not enter "|".');
+    if (!validateOption(inputVal)) {
       return;
-    } else {
-      setError("");
     }
     const _values = [...value, inputVal];
     onChange?.(_values);
@@ -53,11 +63,7 @@ export default (props?: IProps) => {
           onChange={(e) => {
             const value = e.target.value;
             setInputVal(value);
-            if (value && value.includes("|")) {
-              setError('Please do not enter "|".');
-            } else {
-              setError("");
-            }
+            validateOption(value);
           }}
           onPressEnter={(e) => handleSave()}
           status={error ? "error" : ""}
