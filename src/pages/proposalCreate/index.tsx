@@ -86,8 +86,8 @@ export default () => {
         saveTelegramMsgData({
           group_id: proposal.daoId,
           message_id: res.result.message_id,
-          type: "JSON",
-          data: JSON.stringify(res.result),
+          type: "proposal",
+          data: proposal.id,
         }).then((saveRes) => {
           console.log("saveRes: ", saveRes);
         });
