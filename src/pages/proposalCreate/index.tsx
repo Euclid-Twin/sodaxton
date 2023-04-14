@@ -261,7 +261,7 @@ export default () => {
               }}
               className="proposal-start-now"
             >
-              Start Now
+              Start in 5 mins
             </Checkbox>
             <DatePicker
               showTime

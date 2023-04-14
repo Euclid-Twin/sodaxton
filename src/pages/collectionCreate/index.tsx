@@ -268,7 +268,7 @@ export default () => {
             }}
             className="checkbox-everyone-mint"
           >
-            Start Now
+            Everyone can mint
           </Checkbox>
         </div>
         <div className="collection-footer-btns">

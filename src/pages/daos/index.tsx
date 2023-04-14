@@ -86,6 +86,9 @@ export default () => {
             page.current = 1;
             setName(value);
             setDaos([]);
+            if (value === name) {
+              fetchDaos(value);
+            }
           }}
         />
         <div className="list-switch">
