@@ -1,0 +1,124 @@
+"Asm.fif" include
+PROGRAM{
+  DECLPROC send_empty_message
+  DECLPROC send_simple_message
+  DECLPROC send_message_nobounce
+  DECLPROC send_message_with_stateinit
+  DECLPROC save_data
+  DECLPROC load_data
+  DECLPROC recv_internal
+  send_empty_message PROCREF:<{
+    0 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s3 XCHG2
+    STSLICER
+    s0 s3 XCHG2
+    STGRAMS
+    107 STU
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_simple_message PROCREF:<{
+    1 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s4 XCHG2
+    STSLICER
+    s0 s4 XCHG2
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_message_nobounce PROCREF:<{
+    1 PUSHINT
+    16 PUSHINT
+    NEWC
+    6 STU
+    s0 s4 XCHG2
+    STSLICER
+    s0 s4 XCHG2
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_message_with_stateinit PROCREF:<{
+    7 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s5 XCHG2
+    STSLICER
+    s0 s5 XCHG2
+    STGRAMS
+    s1 s3 XCHG
+    108 STU
+    STREF
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  save_data PROCINLINE:<{
+    SWAP
+    NEWC
+    64 STU
+    SWAP
+    STSLICER
+    ENDC
+    c4 POP
+  }>
+  load_data PROC:<{
+    c4 PUSH
+    CTOS
+    64 LDU
+    LDMSGADDR
+    DROP
+  }>
+  recv_internal PROC:<{
+    2 2 BLKDROP2
+    DUP
+    SEMPTY
+    IFJMP:<{
+      2DROP
+    }>
+    SWAP
+    CTOS
+    4 LDU
+    SWAP
+    1 PUSHINT
+    AND
+    IFJMP:<{
+      2DROP
+    }>
+    LDMSGADDR
+    DROP
+    load_data CALLDICT
+    s1 s2 XCHG
+    SDEQ
+    402 THROWIFNOT
+    NOW
+    SWAP
+    GREATER
+    403 THROWIFNOT
+    LDMSGADDR
+    LDREF
+    DROP
+    0 PUSHINT
+    -ROT
+    130 PUSHINT
+    send_simple_message INLINECALLDICT
+  }>
+}END>c
+

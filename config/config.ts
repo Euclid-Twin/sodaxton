@@ -4,6 +4,8 @@ export default defineConfig({
   define: {
     "process.env.BOT_TOKEN": process.env.BOT_TOKEN,
     "process.env.APP_ENV": process.env.APP_ENV,
+    "process.env.TON_API_TOKEN": process.env.TON_API_TOKEN,
+    "process.env.TON_CENTER_API_TOKEN": process.env.TON_CENTER_API_TOKEN,
     "process.env.CHAIN_ENV":
       process.env.APP_ENV === "prod" ? "TONmain" : "TONtest",
     "process.env.TON_SERVER":
@@ -54,6 +56,16 @@ export default defineConfig({
   ],
   request: {},
   hash: true,
+  webpack5: {},
+  // chainWebpack: (config) => {
+  //   config.module
+  //     .rule("worker")
+  //     .test(/\.worker\.js$/)
+  //     .use("worker-loader")
+  //     .loader("worker-loader");
+  //   config.resolve.alias.set("buffer", require.resolve("buffer/"));
+  // },
+
   routes: [
     {
       exact: false,
@@ -70,6 +82,11 @@ export default defineConfig({
         { path: "/collections", component: "collections" },
         { path: "/collection/create", component: "collectionCreate" },
         { path: "/collection/mint", component: "collectionMint" },
+        { path: "/launchpad/deploy", component: "@/pages/launchPad/deploy" },
+        {
+          path: "/launchpad/participate",
+          component: "@/pages/launchPad/participate",
+        },
       ],
     },
   ],

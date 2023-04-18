@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
+import { Address } from "ton";
 
 export const formatTimestamp = (
   timestamp?: number | string,
@@ -65,4 +66,19 @@ export const getCountdownTime = (timeMilSecs: number) => {
   const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
   return [hours, minutes, seconds];
+};
+
+export const getJettonWallet = async (address: string) => {
+  const tonweb = new TonWeb(
+    new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
+      apiKey: process.env.TON_CENTER_API_TOKEN,
+    })
+  );
+  const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
+  const jettonWallet = new JettonWallet(tonweb.provider, {
+    address: address,
+  });
+  const data = await jettonWallet.getData();
+  console.log("data", data);
+  return jettonWallet;
 };

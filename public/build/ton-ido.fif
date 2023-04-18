@@ -1,0 +1,366 @@
+"Asm.fif" include
+PROGRAM{
+  DECLPROC send_empty_message
+  DECLPROC send_simple_message
+  DECLPROC send_message_nobounce
+  DECLPROC send_message_with_stateinit
+  DECLPROC force_chain
+  DECLPROC create_simple_transfer_body
+  DECLPROC pack_jetton_wallet_data
+  DECLPROC calculate_jetton_wallet_state_init
+  DECLPROC calculate_jetton_wallet_address
+  DECLPROC calculate_user_jetton_wallet_address
+  DECLPROC save_data
+  DECLPROC load_data
+  DECLPROC recv_internal
+  DECLPROC deploy_time_lock
+  108001 DECLMETHOD get_info
+  121950 DECLMETHOD get_jetton_wallet_addr
+  77389 DECLMETHOD my_balance
+  send_empty_message PROCREF:<{
+    0 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s3 XCHG2
+    STSLICER
+    s0 s3 XCHG2
+    STGRAMS
+    107 STU
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_simple_message PROCREF:<{
+    1 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s4 XCHG2
+    STSLICER
+    s0 s4 XCHG2
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_message_nobounce PROCREF:<{
+    1 PUSHINT
+    16 PUSHINT
+    NEWC
+    6 STU
+    s0 s4 XCHG2
+    STSLICER
+    s0 s4 XCHG2
+    STGRAMS
+    s1 s2 XCHG
+    107 STU
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  send_message_with_stateinit PROCREF:<{
+    7 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s5 XCHG2
+    STSLICER
+    s0 s5 XCHG2
+    STGRAMS
+    s1 s3 XCHG
+    108 STU
+    STREF
+    STREF
+    ENDC
+    SWAP
+    SENDRAWMSG
+  }>
+  force_chain PROC:<{
+    REWRITESTDADDR
+    DROP
+    0 PUSHINT
+    EQUAL
+    333 THROWIFNOT
+  }>
+  create_simple_transfer_body PROCINLINE:<{
+    0 PUSHINT
+    DUP
+    260734629 PUSHINT
+    NEWC
+    32 STU
+    s1 s6 XCHG
+    64 STU
+    s0 s3 XCHG2
+    STGRAMS
+    OVER
+    STSLICER
+    SWAP
+    STSLICER
+    s1 s3 XCHG
+    1 STU
+    SWAP
+    STGRAMS
+    1 STU
+  }>
+  pack_jetton_wallet_data PROCINLINE:<{
+    NEWC
+    s0 s4 XCHG2
+    STGRAMS
+    ROT
+    STSLICER
+    SWAP
+    STSLICER
+    STREF
+    ENDC
+  }>
+  calculate_jetton_wallet_state_init PROCINLINE:<{
+    0 PUSHINT
+    s0 s1 s2 XCPUXC
+    s4 s0 s3 XC2PU
+    pack_jetton_wallet_data INLINECALLDICT
+    s2 PUSH
+    NEWC
+    2 STU
+    s1 s2 XCHG
+    STDICT
+    STDICT
+    1 STU
+    ENDC
+  }>
+  calculate_jetton_wallet_address PROCINLINE:<{
+    HASHCU
+    0 PUSHINT
+    4 PUSHINT
+    NEWC
+    3 STU
+    8 STI
+    256 STU
+    ENDC
+    CTOS
+  }>
+  calculate_user_jetton_wallet_address PROCINLINE:<{
+    calculate_jetton_wallet_state_init INLINECALLDICT
+    calculate_jetton_wallet_address INLINECALLDICT
+  }>
+  save_data PROCINLINE:<{
+    s0 s8 XCHG
+    NEWC
+    64 STU
+    s1 s7 XCHG
+    64 STU
+    s1 s3 XCHG
+    64 STU
+    64 STU
+    ENDC
+    NEWC
+    STREF
+    s0 s3 XCHG2
+    STSLICER
+    SWAP
+    STSLICER
+    STREF
+    STREF
+    SWAP
+    STSLICER
+    ENDC
+    c4 POP
+  }>
+  load_data PROC:<{
+    c4 PUSH
+    CTOS
+    LDREF
+    SWAP
+    CTOS
+    64 LDU
+    64 LDU
+    s0 s3 XCHG
+    LDMSGADDR
+    LDMSGADDR
+    s0 s5 XCHG
+    64 LDU
+    64 LDU
+    DROP
+    s0 s6 XCHG
+    LDREF
+    LDREF
+    LDMSGADDR
+    DROP
+    s7 s8 XCHG
+    s6 s7 XCHG
+    s5 s6 XCHG
+    s4 s5 XCHG
+    s3 s4 XCHG
+  }>
+  recv_internal PROC:<{
+    s3 POP
+    CTOS
+    4 LDU
+    SWAP
+    1 PUSHINT
+    AND
+    IFJMP:<{
+      3 BLKDROP
+    }>
+    LDMSGADDR
+    DROP
+    DUP
+    force_chain CALLDICT
+    load_data CALLDICT
+    MYADDR
+    s6 s3 PUSH2
+    calculate_user_jetton_wallet_address INLINECALLDICT
+    s12 PUSH
+    SEMPTY
+    IFJMP:<{
+      s12 POP
+      s6 PUSH
+      2 PLDU
+      0 EQINT
+      304 THROWIFNOT
+      100000000 PUSHINT
+      s11 s11 XCPU
+      SUB
+      DUP
+      0 GTINT
+      302 THROWIFNOT
+      s9 PUSH
+      NOW
+      LESS
+      s5 s1 PUSH2
+      ADD
+      s7 PUSH
+      GREATER
+      OR
+      IFJMP:<{
+        s11 POP
+        9 BLKDROP
+        s2 POP
+        NEWC
+        ENDC
+        s1 s2 XCHG
+        2 PUSHINT
+        send_simple_message INLINECALLDICT
+      }>
+      s0 s8 PUSH2
+      MUL
+      1000000 PUSHINT
+      DIV
+      0 PUSHINT
+      s4 s11 s0 PUSH3
+      s0 s15 XCHG
+      deploy_time_lock CALLDICT
+      s1 s3 XCHG
+      s13 s13 s0 XCHG3
+      create_simple_transfer_body INLINECALLDICT
+      0 PUSHINT
+      SWAP
+      32 STU
+      ENDC
+      s11 s12 s0 XCHG3
+      2 PUSHINT
+      send_simple_message INLINECALLDICT
+      s0 s7 XCHG
+      ADD
+      s5 s8 XCHG
+      s4 s7 XCHG
+      s3 s6 XCHG
+      s5 s1 s3 XCHG3
+      s4 s2 XCHG2
+      save_data INLINECALLDICT
+    }>
+    s11 s8 XCHG2
+    8 BLKDROP
+    s0 s4 XCHG
+    32 LDU
+    64 LDU
+    s5 s4 PUSH2
+    SDEQ
+    303 THROWIFNOT
+    s0 s3 XCHG
+    NOW
+    LESS
+    301 THROWIFNOT
+    OVER
+    1 EQINT
+    IFJMP:<{
+      s3 s5 XCHG
+      5 BLKDROP
+      0 PUSHINT
+      NEWC
+      ENDC
+      s1 s2 XCHG
+      130 PUSHINT
+      send_simple_message INLINECALLDICT
+    }>
+    s3 POP
+    2 EQINT
+    IFJMP:<{
+      64 LDU
+      DROP
+      s1 s2 XCHG
+      0 PUSHINT
+      s0 s2 XCHG
+      create_simple_transfer_body INLINECALLDICT
+      0 PUSHINT
+      SWAP
+      32 STU
+      0 PUSHINT
+      SWAP
+      ENDC
+      s1 s2 XCHG
+      130 PUSHINT
+      send_simple_message INLINECALLDICT
+    }>
+    4 BLKDROP
+  }>
+  deploy_time_lock PROC:<{
+    SWAP
+    NEWC
+    64 STU
+    SWAP
+    STSLICER
+    ENDC
+    0 PUSHINT
+    DUP
+    NEWC
+    2 STU
+    s1 s3 XCHG
+    STDICT
+    STDICT
+    1 STU
+    ENDC
+    HASHCU
+    0 PUSHINT
+    4 PUSHINT
+    NEWC
+    3 STU
+    8 STI
+    256 STU
+    ENDC
+    CTOS
+  }>
+  get_info PROC:<{
+    load_data CALLDICT
+  }>
+  get_jetton_wallet_addr PROC:<{
+    load_data CALLDICT
+    s2 s4 XCHG
+    4 BLKDROP
+    2 2 BLKDROP2
+    s2 POP
+    MYADDR
+    s0 s2 XCHG
+    calculate_user_jetton_wallet_address INLINECALLDICT
+  }>
+  my_balance PROC:<{
+    BALANCE
+    UNPAIR
+    DROP
+  }>
+}END>c
+
