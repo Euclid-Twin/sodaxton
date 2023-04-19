@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-import { Address } from "ton";
+import { Address, toNano } from "ton";
+import BN from "bn.js";
 export const formatTimestamp = (
   timestamp?: number | string,
   format: string = "MM/DD/YYYY"
@@ -38,7 +39,14 @@ export function fallbackCopyTextToClipboard(text: string, tip?: string) {
 
   document.body.removeChild(textArea);
 }
-
+export function toBuffer(ab) {
+  var buf = new Buffer(ab.byteLength);
+  var view = new Uint8Array(ab);
+  for (var i = 0; i < buf.length; ++i) {
+    buf[i] = view[i];
+  }
+  return buf;
+}
 export const getUrl = (uri: string, config?: any): string => {
   if (!uri) return "";
   let source: string = uri;
@@ -67,13 +75,13 @@ export const getCountdownTime = (timeMilSecs: number) => {
   return [hours, minutes, seconds];
 };
 
+const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
+const tonweb = new TonWeb(
+  new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
+    apiKey: process.env.TON_CENTER_API_TOKEN,
+  })
+);
 export const getJettonBalance = async (jettonAddr: string, owner: string) => {
-  const tonweb = new TonWeb(
-    new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
-      apiKey: process.env.TON_CENTER_API_TOKEN,
-    })
-  );
-  const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
   const minter = await new JettonMinter(tonweb.provider, {
     adminAddress: new TonWeb.Address(owner),
     jettonContentUri: "",
@@ -89,6 +97,43 @@ export const getJettonBalance = async (jettonAddr: string, owner: string) => {
   const data = await jettonWallet.getData();
   console.log("getJettonBalance", data.balance.toNumber());
   return data.balance;
+};
+
+export const getJettonTransferTx = async (
+  jettonAddr: string,
+  from: string,
+  to: string,
+  amount: BN
+) => {
+  const minter = await new JettonMinter(tonweb.provider, {
+    adminAddress: new TonWeb.Address(from),
+    jettonContentUri: "",
+    jettonWalletCodeHex: "",
+    address: jettonAddr,
+  });
+  const walletAddr = await minter.getJettonWalletAddress(
+    new TonWeb.Address(from)
+  );
+  const jettonWallet = new JettonWallet(tonweb.provider, {
+    address: walletAddr,
+  });
+  const body = await jettonWallet.createTransferBody({
+    tokenAmount: amount,
+    toAddress: new TonWeb.Address(to),
+    responseAddress: new TonWeb.Address(from),
+    forwardAmount: toNano(0.2),
+    forwardPayload: new TextEncoder().encode("Transfer sold jetton"),
+  });
+  const payload = toBuffer(await body.toBoc()).toString("base64");
+  console.log(
+    "jettonWallet address: ",
+    jettonWallet.address!.toString(true, true, true)!
+  );
+  return {
+    to: jettonWallet.address!.toString(true, true, true),
+    value: 0.2,
+    payload: payload,
+  };
 };
 
 export const getLaunchpadInfo = async (launchpadAddr: string) => {

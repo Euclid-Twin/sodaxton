@@ -41,22 +41,15 @@ import { request } from "umi";
 import {
   getCountdownTime,
   getJettonBalance,
+  getJettonTransferTx,
   getLaunchpadInfo,
+  toBuffer,
 } from "@/utils/index";
 import { saveTelegramMsgData } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTonhubConnect } from "react-ton-x";
 import { WalletName } from "@/models/app";
 import useSendTransaction from "@/hooks/useSendTransaction";
-
-function toBuffer(ab) {
-  var buf = new Buffer(ab.byteLength);
-  var view = new Uint8Array(ab);
-  for (var i = 0; i < buf.length; ++i) {
-    buf[i] = view[i];
-  }
-  return buf;
-}
 
 const readFile = async (file: string): Promise<Cell> => {
   const response = await fetch(file);
@@ -241,12 +234,13 @@ export default () => {
         "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco"
       );
 
-      // const soldToken = await getJettonWallet(
-      //   "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
-      // );
-
       const sourceToken = await getJettonBalance(
-        "EQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADqwHK",
+        "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
+        address
+      );
+
+      const soldToken = await getJettonBalance(
+        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
         address
       );
 
@@ -260,15 +254,19 @@ export default () => {
       const launchPadInfo = await getLaunchpadInfo(
         "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco"
       );
-      return;
-      const tx = {
-        to: launchpadAddress.toFriendly(),
-        value: 0.2,
-        payload: transferBody(launchpadAddress, soldAmount)
-          .toBoc()
-          .toString("base64"),
-      };
+      const tx = await getJettonTransferTx(
+        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+        address,
+        "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco",
+        soldAmount
+      );
       await sendTransaction(tx, "Transfer token", "", "");
+      await getJettonBalance(
+        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+        address
+      );
+
+      setSubmitting(false);
     } catch (e) {
       setSubmitting(false);
       console.log(e);
