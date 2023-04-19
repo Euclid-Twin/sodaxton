@@ -76,18 +76,19 @@ export const getJettonBalance = async (jettonAddr: string, owner: string) => {
   );
   const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
   const minter = await new JettonMinter(tonweb.provider, {
-    adminAddress: new TonWeb.Address(""),
+    adminAddress: new TonWeb.Address(owner),
     jettonContentUri: "",
     jettonWalletCodeHex: "",
     address: jettonAddr,
   });
   const walletAddr = await minter.getJettonWalletAddress(
-    new TonWeb.Address("owner")
+    new TonWeb.Address(owner)
   );
   const jettonWallet = new JettonWallet(tonweb.provider, {
     address: walletAddr,
   });
   const data = await jettonWallet.getData();
+  console.log("getJettonBalance", data.balance.toNumber());
   return data.balance;
 };
 
@@ -101,18 +102,19 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
     launchpadAddr.toString(),
     "get_info"
   );
+  console.log("launchpadData: ", launchpadData);
   return {
-    releaseTime: launchpadData.result[0] as bigint,
-    exRate: launchpadData.result[1] as bigint,
+    releaseTime: launchpadData[0] as bigint,
+    exRate: launchpadData[1] as bigint,
     sourceJetton:
-      (launchpadData.result[2] as Slice).remaining > 2
-        ? (launchpadData.result[2] as Slice).readAddress()
+      (launchpadData[2] as Slice).remaining > 2
+        ? (launchpadData[2] as Slice).readAddress()
         : null,
-    soldJetton: (launchpadData.result[3] as Slice).readAddress(),
-    cap: launchpadData.result[4] as bigint,
-    received: launchpadData.result[5] as bigint,
-    JETTON_WALLET_CODE: launchpadData.result[6] as Cell,
-    timeLockCode: launchpadData.result[7] as Cell,
-    owner: (launchpadData.result[8] as Slice).readAddress(),
+    soldJetton: (launchpadData[3] as Slice).readAddress(),
+    cap: launchpadData[4] as bigint,
+    received: launchpadData[5] as bigint,
+    JETTON_WALLET_CODE: launchpadData[6] as Cell,
+    timeLockCode: launchpadData[7] as Cell,
+    owner: (launchpadData[8] as Slice).readAddress(),
   };
 };

@@ -38,7 +38,11 @@ import { history, useLocation, useModel } from "umi";
 import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
 import { request } from "umi";
-import { getCountdownTime, getJettonBalance } from "@/utils/index";
+import {
+  getCountdownTime,
+  getJettonBalance,
+  getLaunchpadInfo,
+} from "@/utils/index";
 import { saveTelegramMsgData } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTonhubConnect } from "react-ton-x";
@@ -243,7 +247,7 @@ export default () => {
 
       const sourceToken = await getJettonBalance(
         "EQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADqwHK",
-        ""
+        address
       );
 
       // console.log("balance1: ", soldToken);
@@ -253,6 +257,10 @@ export default () => {
       const exRate = base * 2; // 1 SOURCE = 2 SOLD
       const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
       console.log("soldAmount: ", soldAmount.toNumber());
+      const launchPadInfo = await getLaunchpadInfo(
+        "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco"
+      );
+      return;
       const tx = {
         to: launchpadAddress.toFriendly(),
         value: 0.2,
