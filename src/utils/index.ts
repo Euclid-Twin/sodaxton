@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-
+import { Address } from "ton";
 export const formatTimestamp = (
   timestamp?: number | string,
   format: string = "MM/DD/YYYY"
@@ -101,19 +101,30 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
     launchpadAddr.toString(),
     "get_info"
   );
-  console.log("launchpadData: ", launchpadData);
-  return {
-    releaseTime: launchpadData[0] as bigint,
-    exRate: launchpadData[1] as bigint,
+
+  const result = {
+    releaseTime: launchpadData[0].toNumber(),
+    exRate: launchpadData[1].toNumber(),
     sourceJetton:
-      launchpadData[2].length > 2
-        ? launchpadData[2].beginParse().loadAddress()
+      launchpadData[2].bits.length > 2
+        ? launchpadData[2].beginParse().loadAddress().toString()
         : null,
-    soldJetton: launchpadData[3].beginParse().loadAddress(),
-    cap: launchpadData[4] as bigint,
-    received: launchpadData[5] as bigint,
+    soldJetton: launchpadData[3].beginParse().loadAddress().toString(),
+    cap: launchpadData[4].toNumber(),
+    received: launchpadData[5].toNumber(),
     JETTON_WALLET_CODE: launchpadData[6],
     timeLockCode: launchpadData[7],
-    owner: launchpadData[8].beginParse().loadAddress(),
+    owner: launchpadData[8].beginParse().loadAddress().toString(),
   };
+  if (result.sourceJetton) {
+    result.sourceJetton = Address.parse(result.sourceJetton).toFriendly();
+  }
+  if (result.soldJetton) {
+    result.soldJetton = Address.parse(result.soldJetton).toFriendly();
+  }
+  if (result.owner) {
+    result.owner = Address.parse(result.owner).toFriendly();
+  }
+  console.log("launchpadData: ", result);
+  return result;
 };
