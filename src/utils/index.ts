@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-import { Address, Cell, Slice } from "ton";
 
 export const formatTimestamp = (
   timestamp?: number | string,
@@ -107,14 +106,14 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
     releaseTime: launchpadData[0] as bigint,
     exRate: launchpadData[1] as bigint,
     sourceJetton:
-      (launchpadData[2] as Slice).remaining > 2
-        ? (launchpadData[2] as Slice).readAddress()
+      launchpadData[2].length > 2
+        ? launchpadData[2].beginParse().loadAddress()
         : null,
-    soldJetton: (launchpadData[3] as Slice).readAddress(),
+    soldJetton: launchpadData[3].beginParse().loadAddress(),
     cap: launchpadData[4] as bigint,
     received: launchpadData[5] as bigint,
-    JETTON_WALLET_CODE: launchpadData[6] as Cell,
-    timeLockCode: launchpadData[7] as Cell,
-    owner: (launchpadData[8] as Slice).readAddress(),
+    JETTON_WALLET_CODE: launchpadData[6],
+    timeLockCode: launchpadData[7],
+    owner: launchpadData[8].beginParse().loadAddress(),
   };
 };
