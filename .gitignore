@@ -16,3 +16,5 @@ dist.tar.gz
 .env.dev
 .env.prod
 .env.test
+.idea
+package-lock.json

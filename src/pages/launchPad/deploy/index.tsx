@@ -38,7 +38,7 @@ import { history, useLocation, useModel } from "umi";
 import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
 import { request } from "umi";
-import { getCountdownTime, getJettonWallet } from "@/utils/index";
+import { getCountdownTime, getJettonBalance } from "@/utils/index";
 import { saveTelegramMsgData } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTonhubConnect } from "react-ton-x";
@@ -241,8 +241,9 @@ export default () => {
       //   "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
       // );
 
-      const sourceToken = await getJettonWallet(
-        "EQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADqwHK"
+      const sourceToken = await getJettonBalance(
+        "EQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADqwHK",
+        ""
       );
 
       // console.log("balance1: ", soldToken);

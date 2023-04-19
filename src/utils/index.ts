@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-import { Address } from "ton";
+import { Address, Cell, Slice } from "ton";
 
 export const formatTimestamp = (
   timestamp?: number | string,
@@ -68,17 +68,51 @@ export const getCountdownTime = (timeMilSecs: number) => {
   return [hours, minutes, seconds];
 };
 
-export const getJettonWallet = async (address: string) => {
+export const getJettonBalance = async (jettonAddr: string, owner: string) => {
   const tonweb = new TonWeb(
     new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
       apiKey: process.env.TON_CENTER_API_TOKEN,
     })
   );
   const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
+  const minter = await new JettonMinter(tonweb.provider, {
+    adminAddress: new TonWeb.Address(""),
+    jettonContentUri: "",
+    jettonWalletCodeHex: "",
+    address: jettonAddr,
+  });
+  const walletAddr = await minter.getJettonWalletAddress(
+    new TonWeb.Address("owner")
+  );
   const jettonWallet = new JettonWallet(tonweb.provider, {
-    address: address,
+    address: walletAddr,
   });
   const data = await jettonWallet.getData();
-  console.log("data", data);
-  return jettonWallet;
+  return data.balance;
+};
+
+export const getLaunchpadInfo = async (launchpadAddr: string) => {
+  const tonweb = new TonWeb(
+    new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
+      apiKey: process.env.TON_CENTER_API_TOKEN,
+    })
+  );
+  const launchpadData = await tonweb.provider.call2(
+    launchpadAddr.toString(),
+    "get_info"
+  );
+  return {
+    releaseTime: launchpadData.result[0] as bigint,
+    exRate: launchpadData.result[1] as bigint,
+    sourceJetton:
+      (launchpadData.result[2] as Slice).remaining > 2
+        ? (launchpadData.result[2] as Slice).readAddress()
+        : null,
+    soldJetton: (launchpadData.result[3] as Slice).readAddress(),
+    cap: launchpadData.result[4] as bigint,
+    received: launchpadData.result[5] as bigint,
+    JETTON_WALLET_CODE: launchpadData.result[6] as Cell,
+    timeLockCode: launchpadData.result[7] as Cell,
+    owner: (launchpadData.result[8] as Slice).readAddress(),
+  };
 };
