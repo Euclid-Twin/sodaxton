@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-import { Address, toNano } from "ton";
+import { Address, beginCell, toNano } from "ton";
 import BN from "bn.js";
+import { OPS } from "@/utils/jetton-minter.deploy";
 export const formatTimestamp = (
   timestamp?: number | string,
   format: string = "MM/DD/YYYY"
@@ -103,7 +104,8 @@ export const getJettonTransferTx = async (
   jettonAddr: string,
   from: string,
   to: string,
-  amount: BN
+  amount: BN,
+  forwardAmount: string
 ) => {
   const minter = await new JettonMinter(tonweb.provider, {
     adminAddress: new TonWeb.Address(from),
@@ -117,13 +119,11 @@ export const getJettonTransferTx = async (
   const jettonWallet = new JettonWallet(tonweb.provider, {
     address: walletAddr,
   });
-  const body = await jettonWallet.createTransferBody({
-    tokenAmount: amount,
-    toAddress: new TonWeb.Address(to),
-    responseAddress: new TonWeb.Address(from),
-    forwardAmount: toNano(0.2),
-    forwardPayload: new TextEncoder().encode("Transfer sold jetton"),
-  });
+  const body = await getJettonTransferBody(
+    Address.parse(to),
+    amount,
+    toNano(forwardAmount)
+  );
   const payload = toBuffer(await body.toBoc()).toString("base64");
   console.log(
     "jettonWallet address: ",
@@ -131,7 +131,7 @@ export const getJettonTransferTx = async (
   );
   return {
     to: jettonWallet.address!.toString(true, true, true),
-    value: 0.2,
+    value: 0.2 + +forwardAmount,
     payload: payload,
   };
 };
@@ -172,4 +172,20 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
   }
   console.log("launchpadData: ", result);
   return result;
+};
+const getJettonTransferBody = (
+  toOwnerAddress: Address,
+  jettonValue: number | BN,
+  forwardAmount?: number | BN
+) => {
+  return beginCell()
+    .storeUint(OPS.Transfer, 32)
+    .storeUint(0, 64) // queryid
+    .storeCoins(jettonValue)
+    .storeAddress(toOwnerAddress)
+    .storeAddress(null) // TODO RESP?
+    .storeDict(null) // custom payload
+    .storeCoins(forwardAmount ?? 0) // forward ton amount
+    .storeRefMaybe(null) // forward payload - TODO??
+    .endCell();
 };

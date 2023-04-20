@@ -258,7 +258,8 @@ export default () => {
         "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
         address,
         "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco",
-        soldAmount
+        soldAmount,
+        "0"
       );
       await sendTransaction(tx, "Transfer token", "", "");
       await getJettonBalance(
