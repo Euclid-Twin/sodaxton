@@ -19,6 +19,7 @@ import {
   Cell,
   toNano,
   StateInit,
+  fromNano,
 } from "ton";
 import { JETTON_WALLET_CODE, transferBody } from "@/utils/jetton-minter.deploy";
 import TonWeb from "tonweb";
@@ -39,11 +40,12 @@ import { CHAIN_NAME } from "@/utils/constant";
 import { SUCCESS_CODE } from "@/utils/request";
 import { request } from "umi";
 import {
+  ExRate_BASE,
   getCountdownTime,
   getJettonBalance,
   getJettonTransferTx,
   getLaunchpadInfo,
-  toBuffer,
+  readFile,
 } from "@/utils/index";
 import { saveTelegramMsgData } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
@@ -51,20 +53,6 @@ import { useTonhubConnect } from "react-ton-x";
 import { WalletName } from "@/models/app";
 import useSendTransaction from "@/hooks/useSendTransaction";
 
-const readFile = async (file: string): Promise<Cell> => {
-  const response = await fetch(file);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("loadend", () => {
-      console.log(reader.result);
-      const codeCell = Cell.fromBoc(toBuffer(reader.result))[0];
-      console.log(file, codeCell);
-      resolve(codeCell);
-    });
-    reader.readAsArrayBuffer(blob);
-  });
-};
 const createDeployLaunchPadTx = async (
   releaseTime: number,
   cap: number | BN,
@@ -126,7 +114,7 @@ const createDeployLaunchPadTx = async (
     // init: state_cell.toBoc().toString("base64"),
   };
 };
-const base = 1000000;
+const base = ExRate_BASE;
 export default () => {
   const { currentDao, address, walletName } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
@@ -137,59 +125,6 @@ export default () => {
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
   const { sendTransaction } = useSendTransaction();
-  const sendToChat = async (proposal: any) => {
-    try {
-      const text =
-        `${proposal.title}(${proposal.ballotThreshold})\n` +
-        `${proposal.description}\n` +
-        `${VoterBallotOptions[proposal.voterType - 1].label}\n`;
-      const reply_markup = {
-        inline_keyboard: [
-          ...proposal.items.map((item: string, index: number) => [
-            {
-              text: item,
-              callback_data: `soton_vote:${proposal.id}:${index}`,
-            },
-          ]),
-        ],
-      };
-      const msg = {
-        chat_id: proposal.daoId,
-        text,
-        reply_markup,
-      };
-      const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
-      const res = await request(url, {
-        method: "POST",
-        data: msg,
-      });
-      console.log("sendToChat: ", res);
-      const countdowns = getCountdownTime(proposal.startTime);
-      const msg2 = {
-        chat_id: proposal.daoId,
-        text: `This proposal will start in ${countdowns[0]}:${countdowns[1]}:${countdowns[2]}.`,
-        reply_to_message_id: res?.result?.message_id,
-      };
-      if (res.ok && res.result) {
-        saveTelegramMsgData({
-          group_id: proposal.daoId,
-          message_id: res.result.message_id,
-          type: "proposal",
-          data: proposal.id,
-        }).then((saveRes) => {
-          console.log("saveRes: ", saveRes);
-        });
-      }
-      request(url, {
-        method: "POST",
-        data: msg2,
-      }).then((res2) => {
-        console.log("sendToChat: ", res2);
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  };
 
   const handleCreate = async () => {
     if (!address) {
@@ -198,8 +133,8 @@ export default () => {
     }
     try {
       setSubmitting(true);
-      await transfer();
-      return;
+      // await transfer();
+      // return;
       const values = await form.getFieldsValue();
       let releaseTime = Math.ceil(Date.now() / 1000 + 5 * 60);
       let cap = toNano("10");
@@ -210,8 +145,8 @@ export default () => {
         cap,
         address,
         exRate,
-        "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
-        "EQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADqwHK"
+        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+        "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
       );
       await sendTransaction(
         tx,
@@ -222,76 +157,114 @@ export default () => {
           Modal.destroyAll();
         }
       );
+      //TODO save launchpad info to database
+      // let info: any = await getLaunchpadInfo(tx.to);
+      let info;
+      if (!info) {
+        info = {
+          address: "kQCxIKjhSngK3TdH-FEdWvk_Z0SRi_yevI4gEr90YUXPIDq4", // tx.to,
+          releaseTime: releaseTime,
+          exRate: exRate,
+          soldJetton: "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+          sourceJetton: "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
+          cap: 10,
+          received: 0,
+          owner: address,
+        };
+      }
+
+      console.log("info: ", info);
+      const msgData = { ...info, JETTON_WALLET_CODE: "", timeLockCode: "" };
+      await saveTelegramMsgData({
+        group_id: currentDao?.id! || "-1001986890351",
+        message_id: info.address,
+        type: "LaunchPad",
+        data: JSON.stringify(msgData),
+      });
+
+      await transfer(info);
+      // await participate(info);
       setSubmitting(false);
     } catch (e) {
       setSubmitting(false);
     }
   };
 
-  const transfer = async () => {
+  const transfer = async (info: any) => {
     try {
-      const launchpadAddress = Address.parse(
-        "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco"
-      );
-
-      const sourceToken = await getJettonBalance(
-        "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
+      const sourceTokenBalance = await getJettonBalance(
+        info.sourceJetton,
         address
       );
 
-      const soldToken = await getJettonBalance(
-        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-        address
-      );
+      const soldTokenBalance = await getJettonBalance(info.soldJetton, address);
 
-      // console.log("balance1: ", soldToken);
-      console.log("balance2: ", sourceToken);
+      console.log("balance sold: ", soldTokenBalance);
+      console.log("balance source: ", sourceTokenBalance);
 
-      let cap = toNano("10");
-      const exRate = base * 2; // 1 SOURCE = 2 SOLD
+      let cap = toNano(info.cap);
+      const exRate = info.exRate; //base * 2; // 1 SOURCE = 2 SOLD
+      //TODO sold balance should > soldAmount
       const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
-      console.log("soldAmount: ", soldAmount.toNumber());
-      const launchPadInfo = await getLaunchpadInfo(
-        "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco"
-      );
+      console.log("soldAmount: ", fromNano(soldAmount));
+
       const tx = await getJettonTransferTx(
-        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+        info.soldJetton,
         address,
-        "kQBsDiMXpG6ZOHs3pp29h-VmCfT3TEGF1ne3-KC4LlGQAsco",
+        info.address,
         soldAmount,
-        "0"
+        0
       );
-      await sendTransaction(tx, "Transfer token", "", "");
-      await getJettonBalance(
-        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-        address
+      await sendTransaction(
+        tx,
+        "Transfer token",
+        "Transfer successfully",
+        "Transfer failed.",
+        () => {
+          Modal.destroyAll();
+        }
       );
 
+      await participate(info);
       setSubmitting(false);
     } catch (e) {
       setSubmitting(false);
       console.log(e);
     }
   };
-  const range = (start: number, end: number) => {
-    const result = [];
-    for (let i = start; i < end; i++) {
-      result.push(i);
+
+  const participate = async (info: any) => {
+    let tx;
+    if (info.sourceJetton) {
+      const amount = toNano(1); //buy with 1 source
+      tx = await getJettonTransferTx(
+        info.sourceJetton,
+        address,
+        info.address,
+        amount,
+        0.2
+      );
+    } else {
+      tx = {
+        to: info.address,
+        value: 0.5 + Number(fromNano(100000000)), // buy with 0.5 TON
+      };
     }
-    return result;
+    await sendTransaction(
+      tx,
+      "Transfer token",
+      "Transfer successfully",
+      "Transfer failed.",
+      () => {
+        Modal.destroyAll();
+      }
+    );
   };
+
   const disabledDate = (current: any) => {
     // Can not select days before today and today
     return current && current < moment().startOf("day");
     // return current.unix() * 1000 < Date.now();
-  };
-
-  const disabledStartTime = (current: any) => {
-    return {
-      disabledHours: () => range(0, 24).splice(4, 20),
-      disabledMinutes: () => range(30, 60),
-      disabledSeconds: () => [55, 56],
-    };
   };
 
   return (

@@ -263,6 +263,20 @@ export const getChatMember = async (chatId: number, userId: number) => {
   }
 };
 
+export const getChatAdmins = async (chatId: number) => {
+  try {
+    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatAdministrators?chat_id=${chatId}`;
+    const res = await httpRequest({
+      url,
+      params: null,
+      type: HttpRequestType.GET,
+    });
+    return res.result || [];
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 export const createNewStickerSet = async (
   name: string,
   userId: number,

@@ -1,9 +1,19 @@
 import dayjs from "dayjs";
 import { message } from "antd";
 import TonWeb from "tonweb";
-import { Address, beginCell, toNano } from "ton";
+import {
+  Address,
+  beginCell,
+  fromNano,
+  toNano,
+  Cell,
+  contractAddress,
+  TonClient,
+} from "ton";
 import BN from "bn.js";
 import { OPS } from "@/utils/jetton-minter.deploy";
+import { getBindResult } from "@/api/apis";
+import { getChatAdmins } from "@/api";
 export const formatTimestamp = (
   timestamp?: number | string,
   format: string = "MM/DD/YYYY"
@@ -48,6 +58,22 @@ export function toBuffer(ab) {
   }
   return buf;
 }
+
+export const readFile = async (file: string): Promise<Cell> => {
+  const response = await fetch(file);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("loadend", () => {
+      console.log(reader.result);
+      const codeCell = Cell.fromBoc(toBuffer(reader.result))[0];
+      console.log(file, codeCell);
+      resolve(codeCell);
+    });
+    reader.readAsArrayBuffer(blob);
+  });
+};
+
 export const getUrl = (uri: string, config?: any): string => {
   if (!uri) return "";
   let source: string = uri;
@@ -77,11 +103,15 @@ export const getCountdownTime = (timeMilSecs: number) => {
 };
 
 const { JettonMinter, JettonWallet } = TonWeb.token.jetton;
-const tonweb = new TonWeb(
+export const tonweb = new TonWeb(
   new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
     apiKey: process.env.TON_CENTER_API_TOKEN,
   })
 );
+export const tonClient = new TonClient({
+  endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+  apiKey: process.env.TON_CENTER_API_TOKEN,
+});
 export const getJettonBalance = async (jettonAddr: string, owner: string) => {
   const minter = await new JettonMinter(tonweb.provider, {
     adminAddress: new TonWeb.Address(owner),
@@ -96,8 +126,8 @@ export const getJettonBalance = async (jettonAddr: string, owner: string) => {
     address: walletAddr,
   });
   const data = await jettonWallet.getData();
-  console.log("getJettonBalance", data.balance.toNumber());
-  return data.balance;
+  // console.log("getJettonBalance", data.balance.toNumber());
+  return fromNano(data.balance);
 };
 
 export const getJettonTransferTx = async (
@@ -105,7 +135,7 @@ export const getJettonTransferTx = async (
   from: string,
   to: string,
   amount: BN,
-  forwardAmount: string
+  forwardAmount: number
 ) => {
   const minter = await new JettonMinter(tonweb.provider, {
     adminAddress: new TonWeb.Address(from),
@@ -135,43 +165,44 @@ export const getJettonTransferTx = async (
     payload: payload,
   };
 };
-
+export const ExRate_BASE = 1000000;
 export const getLaunchpadInfo = async (launchpadAddr: string) => {
-  const tonweb = new TonWeb(
-    new TonWeb.HttpProvider("https://testnet.toncenter.com/api/v2/jsonRPC", {
-      apiKey: process.env.TON_CENTER_API_TOKEN,
-    })
-  );
-  const launchpadData = await tonweb.provider.call2(
-    launchpadAddr.toString(),
-    "get_info"
-  );
+  try {
+    const launchpadData = await tonweb.provider.call2(
+      launchpadAddr.toString(),
+      "get_info"
+    );
 
-  const result = {
-    releaseTime: launchpadData[0].toNumber(),
-    exRate: launchpadData[1].toNumber(),
-    sourceJetton:
-      launchpadData[2].bits.length > 2
-        ? launchpadData[2].beginParse().loadAddress().toString()
-        : null,
-    soldJetton: launchpadData[3].beginParse().loadAddress().toString(),
-    cap: launchpadData[4].toNumber(),
-    received: launchpadData[5].toNumber(),
-    JETTON_WALLET_CODE: launchpadData[6],
-    timeLockCode: launchpadData[7],
-    owner: launchpadData[8].beginParse().loadAddress().toString(),
-  };
-  if (result.sourceJetton) {
-    result.sourceJetton = Address.parse(result.sourceJetton).toFriendly();
+    const result = {
+      address: launchpadAddr,
+      releaseTime: launchpadData[0].toNumber(),
+      exRate: launchpadData[1].toNumber(), // includes base
+      sourceJetton:
+        launchpadData[2].bits.length > 2
+          ? launchpadData[2].beginParse().loadAddress().toString()
+          : null,
+      soldJetton: launchpadData[3].beginParse().loadAddress().toString(),
+      cap: Number(fromNano(launchpadData[4])),
+      received: Number(fromNano(launchpadData[5])),
+      JETTON_WALLET_CODE: launchpadData[6],
+      timeLockCode: launchpadData[7],
+      owner: launchpadData[8].beginParse().loadAddress().toString(),
+    };
+    if (result.sourceJetton) {
+      result.sourceJetton = Address.parse(result.sourceJetton).toFriendly();
+    }
+    if (result.soldJetton) {
+      result.soldJetton = Address.parse(result.soldJetton).toFriendly();
+    }
+    if (result.owner) {
+      result.owner = Address.parse(result.owner).toFriendly();
+    }
+    console.log("launchpadData: ", result);
+    return result;
+  } catch (e) {
+    console.log(e);
+    return null;
   }
-  if (result.soldJetton) {
-    result.soldJetton = Address.parse(result.soldJetton).toFriendly();
-  }
-  if (result.owner) {
-    result.owner = Address.parse(result.owner).toFriendly();
-  }
-  console.log("launchpadData: ", result);
-  return result;
 };
 const getJettonTransferBody = (
   toOwnerAddress: Address,
@@ -189,3 +220,93 @@ const getJettonTransferBody = (
     .storeRefMaybe(null) // forward payload - TODO??
     .endCell();
 };
+
+export const isDaoAdmin = async (address: string, chat_id: number) => {
+  // get bind and tid;
+  // get chat admins;
+  // check tid in admins
+  const binds = await getBindResult({ addr: address });
+  const bind = binds.find((item) => item.platform === "Telegram");
+  if (bind) {
+    const admins: any[] = await getChatAdmins(chat_id);
+    return admins.findIndex((item) => item.user.id === bind.tid) > -1;
+  }
+  return false;
+};
+
+export async function getAccountTimeLockAddr(account: string, endTime: number) {
+  let timelockCode = await readFile("/build/timelock.cell");
+  let dataCell = beginCell()
+    .storeUint(endTime, 64)
+    .storeAddress(Address.parse(account))
+    .endCell();
+  return contractAddress({
+    workchain: 0,
+    initialCode: timelockCode,
+    initialData: dataCell,
+  });
+}
+
+export async function getDeployTimelockTx(
+  launchpadInfo: any,
+  account: string,
+  timelockAddress: string
+) {
+  let timelockCode = await readFile("/build/timelock.cell");
+  let dataCell = beginCell()
+    .storeUint(launchpadInfo.releaseTime, 64)
+    .storeAddress(Address.parse(account))
+    .endCell();
+  const initCell = beginCell()
+    .storeBit(0)
+    .storeBit(0)
+    .storeBit(1)
+    .storeBit(1)
+    .storeBit(0)
+    .storeRef(timelockCode)
+    .storeRef(dataCell)
+    .endCell();
+  return {
+    to: timelockAddress,
+    value: 0.1,
+    state_init: initCell.toBoc().toString("base64"),
+  };
+}
+
+export async function getClaimSoldJettonTx(
+  timelockAddress: string,
+  launchpadInfo: any,
+  account: string
+) {
+  const minter = await new JettonMinter(tonweb.provider, {
+    adminAddress: new TonWeb.Address(account),
+    jettonContentUri: "",
+    jettonWalletCodeHex: "",
+    address: launchpadInfo.soldJetton,
+  });
+  const walletAddr = await minter.getJettonWalletAddress(
+    new TonWeb.Address(timelockAddress)
+  );
+  const jettonWallet = new JettonWallet(tonweb.provider, {
+    address: walletAddr,
+  });
+  const jettonWalletAddress = jettonWallet.address!.toString(true, true, true);
+  const purchasedAmount = await getJettonBalance(
+    timelockAddress,
+    launchpadInfo.soldJetton
+  );
+  console.log("purchased amount is", purchasedAmount);
+  const body = getJettonTransferBody(
+    Address.parse(account),
+    toNano(purchasedAmount)
+  );
+  const payload = beginCell()
+    .storeAddress(Address.parse(jettonWalletAddress))
+    .storeRef(body)
+    .endCell();
+  return {
+    to: timelockAddress,
+    value: 0.1,
+    payload: payload.toBoc().toString("base64"),
+  };
+}

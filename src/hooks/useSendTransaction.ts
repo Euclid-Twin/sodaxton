@@ -2,8 +2,8 @@ import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTonhubConnect } from "react-ton-x";
 import { WalletName } from "@/models/app";
 import { useModel } from "umi";
-import { useCallback } from "react";
-import { message } from "antd";
+import { useCallback, useMemo } from "react";
+import { message, Modal } from "antd";
 import {
   Address,
   beginCell,
@@ -12,11 +12,18 @@ import {
   toNano,
   StateInit,
 } from "ton";
+import { TxConfirmModal } from "@/pages/collectionCreate";
 export default () => {
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
   const { currentDao, address, walletName } = useModel("app");
-
+  const walletDisplay = useMemo(() => {
+    if (walletName === WalletName.Tonkeeper) {
+      return WalletName.Tonkeeper;
+    } else {
+      return process.env.APP_ENV === "prod" ? "Tonhub" : "Sandbox";
+    }
+  }, [walletName]);
   const sendTransaction = async (
     tx: {
       value: number | string;
@@ -30,6 +37,7 @@ export default () => {
     callback?: () => void
   ) => {
     try {
+      TxConfirmModal(walletDisplay);
       if (walletName === WalletName.Tonhub) {
         const request = {
           //@ts-ignore
@@ -59,6 +67,7 @@ export default () => {
         } else if (response.type === "success") {
           // Handle successful transaction
           message.success(successMsg || "Send transaction successfully.");
+          Modal.destroyAll();
           callback?.();
         } else {
           throw new Error("Impossible");
@@ -80,11 +89,14 @@ export default () => {
         const resp = await tonConnectUi.connector.sendTransaction(_tx);
         console.log("tonkeeper resp: ", resp);
         message.success(successMsg || "Send transaction successfully.");
+        Modal.destroyAll();
         callback?.();
       }
     } catch (e) {
       console.log(e);
       message.error(failedMsg || "Send transaction failed.");
+    } finally {
+      Modal.destroyAll();
     }
   };
   return {

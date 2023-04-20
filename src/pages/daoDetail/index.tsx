@@ -131,6 +131,9 @@ export default () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="launchpad-container">
         <Button
           type="default"
           className="primary-default btn-open-chat"
@@ -144,6 +147,15 @@ export default () => {
         >
           <img width={14} src="/icon-tg.png" alt="" />
           Open Chat
+        </Button>
+        <Button
+          type="default"
+          className="primary-default btn-open-chat"
+          onClick={() => {
+            history.push("/launchpads");
+          }}
+        >
+          LaunchPad
         </Button>
       </div>
 

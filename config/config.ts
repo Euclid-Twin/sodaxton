@@ -82,6 +82,7 @@ export default defineConfig({
         { path: "/collections", component: "collections" },
         { path: "/collection/create", component: "collectionCreate" },
         { path: "/collection/mint", component: "collectionMint" },
+        { path: "/launchpads", component: "@/pages/launchPad/list" },
         { path: "/launchpad/deploy", component: "@/pages/launchPad/deploy" },
         {
           path: "/launchpad/participate",
