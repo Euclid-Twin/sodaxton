@@ -371,20 +371,34 @@ export const saveTelegramMsgData = async (params: {
   console.log("[saveTelegramNFTMsgData]: ", params, res);
   return res.data;
 };
-export const getTgRawMessages = async (chat_id: number) => {
+
+export interface LaunchPadInfo {
+  address: string;
+  releaseTime: number;
+  exRate: number;
+  soldJetton: string;
+  sourceJetton: string;
+  cap: number;
+  received: number;
+  owner: string;
+}
+
+export const getTgRawMessages = async (chat_id: number, page?: number) => {
   const url = `${API_HOST}/tg/raw-message/`;
   const res = await httpRequest({
     url,
     params: {
       group_id: chat_id,
       type: "LaunchPad",
-      // page: 1,
-      // gap: 10,
+      page: page,
+      gap: 10,
     },
     type: "GET",
   });
   console.log("[getTgRawMessages]: ", res);
   if (res.data && res.data.data) {
     return res.data.data;
+  } else {
+    return [];
   }
 };

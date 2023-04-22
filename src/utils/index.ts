@@ -12,7 +12,7 @@ import {
 } from "ton";
 import BN from "bn.js";
 import { OPS } from "@/utils/jetton-minter.deploy";
-import { getBindResult } from "@/api/apis";
+import { LaunchPadInfo, getBindResult } from "@/api/apis";
 import { getChatAdmins } from "@/api";
 export const formatTimestamp = (
   timestamp?: number | string,
@@ -127,7 +127,7 @@ export const getJettonBalance = async (jettonAddr: string, owner: string) => {
   });
   const data = await jettonWallet.getData();
   // console.log("getJettonBalance", data.balance.toNumber());
-  return fromNano(data.balance);
+  return Number(fromNano(data.balance));
 };
 
 export const getJettonTransferTx = async (
@@ -184,8 +184,8 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
       soldJetton: launchpadData[3].beginParse().loadAddress().toString(),
       cap: Number(fromNano(launchpadData[4])),
       received: Number(fromNano(launchpadData[5])),
-      JETTON_WALLET_CODE: launchpadData[6],
-      timeLockCode: launchpadData[7],
+      // JETTON_WALLET_CODE: launchpadData[6],
+      // timeLockCode: launchpadData[7],
       owner: launchpadData[8].beginParse().loadAddress().toString(),
     };
     if (result.sourceJetton) {
@@ -229,7 +229,7 @@ export const isDaoAdmin = async (address: string, chat_id: number) => {
   const bind = binds.find((item) => item.platform === "Telegram");
   if (bind) {
     const admins: any[] = await getChatAdmins(chat_id);
-    return admins.findIndex((item) => item.user.id === bind.tid) > -1;
+    return admins.findIndex((item) => item.user.id === Number(bind.tid)) > -1;
   }
   return false;
 };
@@ -292,8 +292,8 @@ export async function getClaimSoldJettonTx(
   });
   const jettonWalletAddress = jettonWallet.address!.toString(true, true, true);
   const purchasedAmount = await getJettonBalance(
-    timelockAddress,
-    launchpadInfo.soldJetton
+    launchpadInfo.soldJetton,
+    timelockAddress
   );
   console.log("purchased amount is", purchasedAmount);
   const body = getJettonTransferBody(
@@ -310,3 +310,91 @@ export async function getClaimSoldJettonTx(
     payload: payload.toBoc().toString("base64"),
   };
 }
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms * 1000));
+}
+export const getWalletSeqno = async (address: string) => {
+  const walletContract = tonClient.openWalletFromAddress({
+    source: Address.parse(address),
+  });
+  const seqno = await walletContract.getSeqNo();
+  console.log("seqno:", seqno);
+  return seqno;
+};
+
+export const waitWalletSeqnoIncrease = async (
+  address: string,
+  oldSeqno: number,
+  interval: number = 2,
+  maxWait: number = 10
+) => {
+  console.log("wait starts");
+  const seqno = await getWalletSeqno(address);
+  if (seqno > oldSeqno) {
+    console.log("wait ends");
+    return;
+  } else {
+    let wait = 0;
+    while (true) {
+      await sleep(interval);
+      wait += interval;
+      const seqno = await getWalletSeqno(address);
+      if (seqno > oldSeqno) {
+        console.log("wait ends");
+        return;
+      }
+      if (wait >= maxWait) {
+        console.log("wait exceeds");
+        return;
+      }
+    }
+  }
+};
+
+export const getClaimUnsoldJettonTx = async (
+  launchpadInfo: any,
+  account: string
+) => {
+  const balance = await getJettonBalance(
+    launchpadInfo.soldJetton,
+    launchpadInfo.address
+  );
+  return {
+    to: launchpadInfo.address,
+    value: 0.1,
+    payload: beginCell()
+      .storeUint(2, 32) // op
+      .storeUint(0, 64) // query id
+      .storeUint(toNano(balance), 64)
+      .endCell()
+      .toBoc()
+      .toString("base64"),
+  };
+};
+
+export const getPurchasedAmount = async (
+  launchpadInfo: LaunchPadInfo,
+  account: string
+) => {
+  const accountTimeLockAddr = await getAccountTimeLockAddr(
+    account,
+    launchpadInfo.releaseTime
+  );
+  const timelockAddress = new TonWeb.Address(accountTimeLockAddr.toFriendly());
+  const minter = await new JettonMinter(tonweb.provider, {
+    adminAddress: new TonWeb.Address(account),
+    jettonContentUri: "",
+    jettonWalletCodeHex: "",
+    address: launchpadInfo.soldJetton,
+  });
+  const walletAddr = await minter.getJettonWalletAddress(timelockAddress);
+  const jettonWallet = new JettonWallet(tonweb.provider, {
+    address: walletAddr,
+  });
+  const purchasedAmount = await getJettonBalance(
+    launchpadInfo.soldJetton,
+    accountTimeLockAddr.toFriendly()
+  );
+  console.log("purchased amount is", purchasedAmount);
+  return purchasedAmount;
+};

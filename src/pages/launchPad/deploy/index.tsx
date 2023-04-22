@@ -45,7 +45,9 @@ import {
   getJettonBalance,
   getJettonTransferTx,
   getLaunchpadInfo,
+  getWalletSeqno,
   readFile,
+  waitWalletSeqnoIncrease,
 } from "@/utils/index";
 import { saveTelegramMsgData } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
@@ -122,8 +124,9 @@ export default () => {
   const [startNow, setStartNow] = useState(false);
   const [form] = Form.useForm();
   const [exchangeRate, setExchangeRate] = useState(0);
-  const connect = useTonhubConnect();
-  const [tonConnectUi] = useTonConnectUI();
+  const [useSourceTon, setUseSourceTon] = useState(false);
+  const [soldBalance, setSoldBalance] = useState(0);
+
   const { sendTransaction } = useSendTransaction();
 
   const handleCreate = async () => {
@@ -136,17 +139,28 @@ export default () => {
       // await transfer();
       // return;
       const values = await form.getFieldsValue();
-      let releaseTime = Math.ceil(Date.now() / 1000 + 5 * 60);
-      let cap = toNano("10");
+      const releaseTime = Math.ceil(values.releaseTime / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
+      const cap = toNano(values.cap); //toNano("10");
+      const exRate = values.rate * base; //base * 2; // 1 SOURCE = 2 SOLD
+      const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
+      const soldBalance = await getJettonBalance(values.soldJetton, address);
+      if (soldAmount.gt(toNano(soldBalance))) {
+        message.error(
+          `Your sold jetton balance not enough. Needs ${fromNano(
+            soldAmount
+          )} sold jetton to deploy launchpad.`
+        );
+        return;
+      }
+      const seqno = await getWalletSeqno(address);
 
-      const exRate = base * 2; // 1 SOURCE = 2 SOLD
       let tx = await createDeployLaunchPadTx(
         releaseTime,
         cap,
         address,
         exRate,
-        "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-        "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
+        values.soldJetton, //"kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+        useSourceTon ? "" : values.sourceJetton //"kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
       );
       await sendTransaction(
         tx,
@@ -157,26 +171,25 @@ export default () => {
           Modal.destroyAll();
         }
       );
-      //TODO save launchpad info to database
-      // let info: any = await getLaunchpadInfo(tx.to);
+      await waitWalletSeqnoIncrease(address, seqno);
+      // save launchpad info to database
       let info;
       if (!info) {
         info = {
-          address: "kQCxIKjhSngK3TdH-FEdWvk_Z0SRi_yevI4gEr90YUXPIDq4", // tx.to,
+          address: tx.to, //"kQCxIKjhSngK3TdH-FEdWvk_Z0SRi_yevI4gEr90YUXPIDq4", // tx.to,
           releaseTime: releaseTime,
           exRate: exRate,
-          soldJetton: "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-          sourceJetton: "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
-          cap: 10,
+          soldJetton: values.soldJetton, // "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+          sourceJetton: useSourceTon ? "" : values.sourceJetton, // "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
+          cap: values.cap,
           received: 0,
           owner: address,
         };
       }
-
       console.log("info: ", info);
-      const msgData = { ...info, JETTON_WALLET_CODE: "", timeLockCode: "" };
+      const msgData = { ...info };
       await saveTelegramMsgData({
-        group_id: currentDao?.id! || "-1001986890351",
+        group_id: currentDao?.id!,
         message_id: info.address,
         type: "LaunchPad",
         data: JSON.stringify(msgData),
@@ -186,22 +199,14 @@ export default () => {
       // await participate(info);
       setSubmitting(false);
     } catch (e) {
+      console.log(e);
+    } finally {
       setSubmitting(false);
     }
   };
 
   const transfer = async (info: any) => {
     try {
-      const sourceTokenBalance = await getJettonBalance(
-        info.sourceJetton,
-        address
-      );
-
-      const soldTokenBalance = await getJettonBalance(info.soldJetton, address);
-
-      console.log("balance sold: ", soldTokenBalance);
-      console.log("balance source: ", sourceTokenBalance);
-
       let cap = toNano(info.cap);
       const exRate = info.exRate; //base * 2; // 1 SOURCE = 2 SOLD
       //TODO sold balance should > soldAmount
@@ -225,40 +230,11 @@ export default () => {
         }
       );
 
-      await participate(info);
       setSubmitting(false);
     } catch (e) {
       setSubmitting(false);
       console.log(e);
     }
-  };
-
-  const participate = async (info: any) => {
-    let tx;
-    if (info.sourceJetton) {
-      const amount = toNano(1); //buy with 1 source
-      tx = await getJettonTransferTx(
-        info.sourceJetton,
-        address,
-        info.address,
-        amount,
-        0.2
-      );
-    } else {
-      tx = {
-        to: info.address,
-        value: 0.5 + Number(fromNano(100000000)), // buy with 0.5 TON
-      };
-    }
-    await sendTransaction(
-      tx,
-      "Transfer token",
-      "Transfer successfully",
-      "Transfer failed.",
-      () => {
-        Modal.destroyAll();
-      }
-    );
   };
 
   const disabledDate = (current: any) => {
@@ -281,7 +257,7 @@ export default () => {
       >
         <Form.Item
           label="Capacity"
-          name="capacity"
+          name="cap"
           rules={[
             {
               required: true,
@@ -297,14 +273,14 @@ export default () => {
         </Form.Item>
 
         <Form.Item
-          label="Release TIme"
+          label="Release Time"
           name="releaseTime"
           rules={[{ required: !startNow, message: "Release time is required" }]}
         >
           <DatePicker
             showTime
             showNow={false}
-            placeholder="Start date"
+            placeholder="Release time"
             disabledDate={disabledDate}
             // disabledTime={disabledStartTime}
             className="common-date-picker"
@@ -312,12 +288,12 @@ export default () => {
         </Form.Item>
 
         <Form.Item
-          label="Target Token"
-          name="targetToken"
+          label="Sold Jetton"
+          name="soldToken"
           rules={[
             {
               required: true,
-              message: "Please input target token contract address.",
+              message: "Please input sold jetton contract address.",
             },
             {
               max: 64,
@@ -326,16 +302,16 @@ export default () => {
             },
           ]}
         >
-          <Input className="dao-form-input" placeholder="Target Token" />
+          <Input className="dao-form-input" placeholder="Sold jetton" />
         </Form.Item>
 
         <Form.Item
-          label="Stake Token"
-          name="stakeToken"
+          label="Source Jetton"
+          name="sourceToken"
           rules={[
             {
               required: true,
-              message: "Please input stake token contract address.",
+              message: "Please input source token contract address.",
             },
             {
               max: 64,
@@ -344,7 +320,20 @@ export default () => {
             },
           ]}
         >
-          <Input className="dao-form-input" placeholder="Stake Token" />
+          <Checkbox
+            checked={useSourceTon}
+            onChange={(e) => {
+              setUseSourceTon(e.target.checked);
+            }}
+            className="use-source-ton"
+          >
+            Use TON
+          </Checkbox>
+          <Input
+            className="dao-form-input"
+            placeholder="Source jetton"
+            disabled={useSourceTon}
+          />
         </Form.Item>
 
         <Form.Item
@@ -359,11 +348,12 @@ export default () => {
         >
           <InputNumber
             className="dao-form-input"
-            placeholder="rate"
+            placeholder="Exchange rate"
             onChange={(v) => setExchangeRate(v)}
           />
           <p className="exchange-rate-tip">
-            1 Stake Token = {exchangeRate} Target Token
+            1 {useSourceTon ? "TON" : "Source Token"} = {exchangeRate} Sold
+            Token
           </p>
         </Form.Item>
 

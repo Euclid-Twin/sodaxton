@@ -1,4 +1,5 @@
 import { DaoItem } from "@/api";
+import { LaunchPadInfo } from "@/api/apis";
 import { useState } from "react";
 
 export enum WalletName {
@@ -10,6 +11,7 @@ export default () => {
   const [address, setAddress] = useState<string>("");
   const [walletName, setWalletName] = useState<WalletName>();
   const [currentDao, setCurrentDao] = useState<DaoItem>();
+  const [currentLaunchpad, setCurrentLaunchpad] = useState<LaunchPadInfo>();
 
   return {
     address,
@@ -18,5 +20,7 @@ export default () => {
     setCurrentDao,
     walletName,
     setWalletName,
+    currentLaunchpad,
+    setCurrentLaunchpad,
   };
 };

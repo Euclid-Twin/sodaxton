@@ -85,8 +85,8 @@ export default defineConfig({
         { path: "/launchpads", component: "@/pages/launchPad/list" },
         { path: "/launchpad/deploy", component: "@/pages/launchPad/deploy" },
         {
-          path: "/launchpad/participate",
-          component: "@/pages/launchPad/participate",
+          path: "/launchpad/detail",
+          component: "@/pages/launchPad/detail",
         },
       ],
     },
