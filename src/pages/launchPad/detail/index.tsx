@@ -83,33 +83,38 @@ export default () => {
 
   const releaseTimePassed = useMemo(() => {
     if (currentLaunchpad) {
-      return currentLaunchpad.releaseTime * 1000 > Date.now();
+      return currentLaunchpad.releaseTime * 1000 < Date.now();
     }
     return false;
   }, [currentLaunchpad]);
 
   const sourceNeedStateAmount = useMemo(() => {
-    return (buyAmount * currentLaunchpad!.exRate) / ExRate_BASE;
+    if (currentLaunchpad) {
+      return (buyAmount * currentLaunchpad.exRate) / ExRate_BASE;
+    }
+    return 0;
   }, [currentLaunchpad, buyAmount]);
 
+  const fetchAmount = async () => {
+    if (currentLaunchpad) {
+      const purchasedAmount = await getPurchasedAmount(
+        currentLaunchpad,
+        address
+      );
+      const stakedAmount =
+        (purchasedAmount * ExRate_BASE) / currentLaunchpad.exRate;
+      const unsold = await getJettonBalance(
+        currentLaunchpad.soldJetton,
+        currentLaunchpad.address
+      );
+      setBuyedSoldAmount(purchasedAmount);
+      setStakedSourceAmount(stakedAmount);
+      setUnsoldAmount(unsold);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      if (currentLaunchpad) {
-        const purchasedAmount = await getPurchasedAmount(
-          currentLaunchpad,
-          address
-        );
-        const stakedAmount =
-          (purchasedAmount * ExRate_BASE) / currentLaunchpad.exRate;
-        const unsold = await getJettonBalance(
-          currentLaunchpad.soldJetton,
-          currentLaunchpad.address
-        );
-        setBuyedSoldAmount(purchasedAmount);
-        setStakedSourceAmount(stakedAmount);
-        setUnsoldAmount(unsold);
-      }
-    })();
+    fetchAmount();
   }, [currentLaunchpad, address]);
 
   useEffect(() => {
@@ -139,12 +144,12 @@ export default () => {
     })();
   }, [currentLaunchpad, address]);
 
-  useEffect(() => {
-    fetchLaunchpadState();
-  }, [currentLaunchpad]);
+  // useEffect(() => {
+  //   fetchLaunchpadState();
+  // }, [currentLaunchpad]);
 
   const handleBuy = () => {
-    setFormShow(false);
+    setFormShow(true);
   };
   const handleBuySubmit = async () => {
     if (!address) {
@@ -170,6 +175,7 @@ export default () => {
           value: 0.5 + Number(fromNano(100000000)), // buy with 0.5 TON
         };
       }
+      const seqno = await getWalletSeqno(address);
       await sendTransaction(
         tx,
         "Buy launchpad sold",
@@ -179,6 +185,8 @@ export default () => {
           setFormShow(false);
         }
       );
+      await waitWalletSeqnoIncrease(address, seqno);
+      fetchAmount();
       setSubmitting(false);
     } catch (e) {
       message.error("Buy failed.");
@@ -318,7 +326,7 @@ export default () => {
             type="primary"
             className="primary-btn btn-claim"
             loading={submitting}
-            disabled={!releaseTimePassed}
+            disabled={!releaseTimePassed || stakedSourceAmount === 0}
             onClick={handleClaim}
           >
             Claim
@@ -334,7 +342,7 @@ export default () => {
         <div className="admin-btns">
           <Button
             type="primary"
-            className="default-btn btn-buy"
+            className="default-btn btn-claim-jetton"
             disabled={!releaseTimePassed}
             onClick={adminClaimUnsoldJetton}
           >
@@ -342,7 +350,7 @@ export default () => {
           </Button>
           <Button
             type="primary"
-            className="primary-btn btn-claim"
+            className="default-btn btn-claim-source"
             loading={submitting}
             disabled={!releaseTimePassed}
             onClick={adminClaimSourceJettonOrTon}
@@ -385,7 +393,7 @@ export default () => {
           <div className="launchpad-info-item">
             <span className="label">Exchange Rate: </span>
             <span className="value">
-              {currentLaunchpad!.exRate / ExRate_BASE}
+              {currentLaunchpad?.exRate / ExRate_BASE}
             </span>
           </div>
           <div className="launchpad-info-item">

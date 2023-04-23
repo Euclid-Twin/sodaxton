@@ -139,7 +139,9 @@ export default () => {
       // await transfer();
       // return;
       const values = await form.getFieldsValue();
-      const releaseTime = Math.ceil(values.releaseTime / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
+      const values2 = await form.validateFields();
+      console.log("values: ", values, values2);
+      const releaseTime = Math.ceil(values.releaseTime.valueOf() / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
       const cap = toNano(values.cap); //toNano("10");
       const exRate = values.rate * base; //base * 2; // 1 SOURCE = 2 SOLD
       const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
@@ -227,6 +229,7 @@ export default () => {
         "Transfer failed.",
         () => {
           Modal.destroyAll();
+          history.goBack();
         }
       );
 
@@ -289,7 +292,7 @@ export default () => {
 
         <Form.Item
           label="Sold Jetton"
-          name="soldToken"
+          name="soldJetton"
           rules={[
             {
               required: true,
@@ -304,10 +307,18 @@ export default () => {
         >
           <Input className="dao-form-input" placeholder="Sold jetton" />
         </Form.Item>
-
+        <Checkbox
+          checked={useSourceTon}
+          onChange={(e) => {
+            setUseSourceTon(e.target.checked);
+          }}
+          className="use-source-ton"
+        >
+          Use TON
+        </Checkbox>
         <Form.Item
           label="Source Jetton"
-          name="sourceToken"
+          name="sourceJetton"
           rules={[
             {
               required: true,
@@ -320,15 +331,6 @@ export default () => {
             },
           ]}
         >
-          <Checkbox
-            checked={useSourceTon}
-            onChange={(e) => {
-              setUseSourceTon(e.target.checked);
-            }}
-            className="use-source-ton"
-          >
-            Use TON
-          </Checkbox>
           <Input
             className="dao-form-input"
             placeholder="Source jetton"
@@ -351,12 +353,10 @@ export default () => {
             placeholder="Exchange rate"
             onChange={(v) => setExchangeRate(v)}
           />
-          <p className="exchange-rate-tip">
-            1 {useSourceTon ? "TON" : "Source Token"} = {exchangeRate} Sold
-            Token
-          </p>
         </Form.Item>
-
+        <p className="exchange-rate-tip">
+          1 {useSourceTon ? "TON" : "Source Token"} = {exchangeRate} Sold Token
+        </p>
         <div className="proposal-footer-btns">
           <Button
             type="default"

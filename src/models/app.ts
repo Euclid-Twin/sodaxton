@@ -11,7 +11,10 @@ export default () => {
   const [address, setAddress] = useState<string>("");
   const [walletName, setWalletName] = useState<WalletName>();
   const [currentDao, setCurrentDao] = useState<DaoItem>();
-  const [currentLaunchpad, setCurrentLaunchpad] = useState<LaunchPadInfo>();
+  const [currentLaunchpad, setCurrentLaunchpad] = useState<LaunchPadInfo>({
+    exrate: 0,
+    releaseTime: 0,
+  });
 
   return {
     address,
