@@ -220,19 +220,19 @@ export default () => {
       const seqno = await getWalletSeqno(address);
       await sendTransaction(
         tx,
-        "Buy launchpad sold",
-        "Buy successfully",
-        "Buy failed.",
+        "Stake",
+        "Stake successfully",
+        "Stake failed.",
         async () => {
           setFormShow(false);
-          await waitWalletSeqnoIncrease(address, seqno);
         }
       );
+      await waitWalletSeqnoIncrease(address, seqno);
       fetchAmount();
       fetchUnsoldAmount();
       setSubmitting(false);
     } catch (e) {
-      message.error("Buy failed.");
+      message.error("Stake failed.");
       setSubmitting(false);
     }
   };
@@ -299,9 +299,9 @@ export default () => {
     };
     await sendTransaction(
       tx,
-      "Claim Source",
-      "Claim source successfully",
-      "Claim source faield"
+      "Claim Staked Jetton",
+      "Claim Staked Jetton successfully",
+      "Claim Staked Jetton faield"
     );
   };
 
@@ -310,9 +310,9 @@ export default () => {
     const tx = await getClaimUnsoldJettonTx(info, address);
     await sendTransaction(
       tx,
-      "Claim sold",
-      "Claim sold successfully",
-      "Claim failed"
+      "Claim Offering Jetton",
+      "Claim Offering Jetton successfully",
+      "Claim Offering Jetton"
     );
   };
 
@@ -322,27 +322,22 @@ export default () => {
       <Back />
       <div className="launchpad-info">
         <div className="launchpad-info-item">
-          <span className="label">Release Time</span>
+          <span className="label">Release Time: </span>
           <span className="value">{releaseTime}</span>
         </div>
-        <div className="launchpad-info-item">
+        {/* <div className="launchpad-info-item">
           <span className="label">Capacity</span>
           <span className="value">{currentLaunchpad?.cap}</span>
-        </div>
+        </div> */}
         <div className="launchpad-info-item">
-          <span className="label">Source Balance</span>
+          <span className="label">Stake Balance: </span>
           <span className="value">
             {launchpadSourceBalance} / {currentLaunchpad?.cap}
           </span>
         </div>
+
         <div className="launchpad-info-item">
-          <span className="label">Exchange Rate</span>
-          <span className="value">
-            {currentLaunchpad?.exRate / ExRate_BASE}
-          </span>
-        </div>
-        <div className="launchpad-info-item">
-          <span className="label">Sold Jetton</span>
+          <span className="label">Offering Jetton: </span>
           <span
             className="value value-link"
             onClick={() => {
@@ -351,11 +346,11 @@ export default () => {
               );
             }}
           >
-            {soldMetadata?.name}({soldMetadata?.symbol})
+            {soldMetadata?.name} ({soldMetadata?.symbol})
           </span>
         </div>
         <div className="launchpad-info-item">
-          <span className="label">Source Jetton</span>
+          <span className="label">Staked Jetton: </span>
           <span
             className="value value-link"
             onClick={() => {
@@ -367,8 +362,15 @@ export default () => {
             }}
           >
             {currentLaunchpad.sourceJetton
-              ? `${sourceMetadata?.name}(${sourceMetadata?.symbol})`
+              ? `${sourceMetadata?.name} (${sourceMetadata?.symbol})`
               : "TON"}
+          </span>
+        </div>
+        <div className="launchpad-info-item">
+          <span className="label">Exchange Rate:</span>
+          <span className="value">
+            1 {currentLaunchpad.sourceJetton ? "Staked" : "TON"} ={" "}
+            {currentLaunchpad?.exRate / ExRate_BASE} Offering
           </span>
         </div>
       </div>
@@ -390,7 +392,7 @@ export default () => {
             onClick={handleBuy}
             loading={submitting}
           >
-            Buy
+            Stake
           </Button>
           <Button
             type="primary"
@@ -403,33 +405,38 @@ export default () => {
           </Button>
         </div>
       </div>
+      {isAdmin && (
+        <div>
+          <p>(Admin only)</p>
 
-      <div className="launchpad-admin-controls">
-        <div className="launchpad-info-item">
-          <span className="label">Unsold jetton amount: </span>
-          <span className="value">{unsoldAmount}</span>
+          <div className="launchpad-admin-controls">
+            <div className="launchpad-info-item">
+              <span className="label">Offering Jetton in pool: </span>
+              <span className="value">{unsoldAmount}</span>
+            </div>
+            <div className="admin-btns">
+              <Button
+                type="primary"
+                className="default-btn btn-claim-jetton"
+                disabled={!releaseTimePassed}
+                onClick={adminClaimUnsoldJetton}
+                loading={submitting}
+              >
+                Withdraw Offering Jetton in Pool
+              </Button>
+              <Button
+                type="primary"
+                className="default-btn btn-claim-source"
+                loading={submitting}
+                disabled={!releaseTimePassed}
+                onClick={adminClaimSourceJettonOrTon}
+              >
+                Claim Staked Jetton or TON
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="admin-btns">
-          <Button
-            type="primary"
-            className="default-btn btn-claim-jetton"
-            disabled={!releaseTimePassed}
-            onClick={adminClaimUnsoldJetton}
-            loading={submitting}
-          >
-            Claim unsold jetton
-          </Button>
-          <Button
-            type="primary"
-            className="default-btn btn-claim-source"
-            loading={submitting}
-            disabled={!releaseTimePassed}
-            onClick={adminClaimSourceJettonOrTon}
-          >
-            Claim source jetton or TON
-          </Button>
-        </div>
-      </div>
+      )}
       <Modal
         footer={null}
         className="common-modal"
@@ -463,8 +470,12 @@ export default () => {
           </Form.Item>
           <div className="launchpad-info-item">
             <span className="label">Exchange Rate: </span>
-            <span className="value">
+            {/* <span className="value">
               {currentLaunchpad?.exRate / ExRate_BASE}
+            </span> */}
+            <span className="value">
+              1 {currentLaunchpad.sourceJetton ? "Staked" : "TON"} ={" "}
+              {currentLaunchpad?.exRate / ExRate_BASE} Sold
             </span>
           </div>
           <div className="launchpad-info-item">

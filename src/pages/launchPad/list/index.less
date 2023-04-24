@@ -1,6 +1,21 @@
+.launchpad-list-container {
+  > .launchpad-btns-container {
+    > .btn-deploy-launchpad {
+      height: 32px;
+      margin-bottom: 10px;
+    }
+  }
+}
 .launchpad-list-item {
   display: flex;
   flex-direction: column;
+  > p {
+    overflow: hidden;
+    word-break: break-all;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 300px;
+  }
 
   .launchpad-list-addr {
     font-weight: 500;

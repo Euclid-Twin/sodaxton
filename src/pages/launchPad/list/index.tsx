@@ -7,7 +7,7 @@ import Back from "@/components/Back";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 import { PAGE_SIZE } from "@/utils/constant";
-import { isDaoAdmin } from "@/utils";
+import { isDaoAdmin, getJettonDetails } from "@/utils";
 
 export default () => {
   const [list, setList] = useState<LaunchPadInfo[]>([]);
@@ -34,6 +34,28 @@ export default () => {
       setLoading(true);
       const res = await getTgRawMessages(Number(currentDao?.id));
       const _list = res.map((item: any) => JSON.parse(item.data));
+      const metadatas = [];
+      for (const item of _list) {
+        const data = await Promise.all([
+          getJettonDetails(item.soldJetton),
+          item.sourceJetton
+            ? getJettonDetails(item.sourceJetton)
+            : Promise.resolve("TON"),
+        ]);
+        metadatas.push(data);
+      }
+      for (let i = 0; i < _list.length; i++) {
+        if (metadatas[i][0] && metadatas[i][1]) {
+          _list[i].soldName =
+            metadatas[i][0].metadata.name +
+            ` (${metadatas[i][0].metadata.symbol})`;
+          _list[i].sourceName =
+            metadatas[i][1] === "TON"
+              ? "TON"
+              : metadatas[i][1].metadata.name +
+                ` (${metadatas[i][1].metadata.symbol})`;
+        }
+      }
       if (res.length > 0) {
         page.current += 1;
         if (res.length < PAGE_SIZE) {
@@ -54,6 +76,8 @@ export default () => {
   const addressDisplay = (addr: string) => {
     if (addr) {
       return addr.substr(0, 8) + "..." + addr.substr(-8);
+    } else {
+      return "TON";
     }
   };
 
@@ -68,8 +92,8 @@ export default () => {
       <div className="launchpad-btns-container">
         {isAdmin && (
           <Button
-            type="default"
-            className="primary-default btn-open-chat"
+            type="primary"
+            className="primary-btn btn-deploy-launchpad"
             onClick={() => {
               history.push("/launchpad/deploy");
             }}
@@ -104,16 +128,18 @@ export default () => {
             >
               <div className="launchpad-list-item">
                 <p>
-                  Source Jetton:{" "}
+                  Offering:{" "}
                   <span className="launchpad-list-addr">
-                    {addressDisplay(item.sourceJetton)}
-                  </span>
+                    {/* {addressDisplay(item.soldJetton)} */}
+                    {item.soldName}
+                  </span>{" "}
                 </p>
                 <p>
-                  Sold Jetton:{" "}
+                  Staked:{" "}
                   <span className="launchpad-list-addr">
-                    {addressDisplay(item.soldJetton)}
-                  </span>{" "}
+                    {/* {addressDisplay(item.sourceJetton)} */}
+                    {item.sourceName}
+                  </span>
                 </p>
               </div>
 

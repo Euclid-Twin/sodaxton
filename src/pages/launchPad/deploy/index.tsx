@@ -11,6 +11,7 @@ import {
   Tooltip,
   InputNumber,
   Checkbox,
+  Popover,
 } from "antd";
 import {
   Address,
@@ -22,8 +23,6 @@ import {
   fromNano,
 } from "ton";
 import { JETTON_WALLET_CODE, transferBody } from "@/utils/jetton-minter.deploy";
-import TonWeb from "tonweb";
-
 import BN from "bn.js";
 const TextArea = Input.TextArea;
 const { RangePicker } = DatePicker;
@@ -258,7 +257,18 @@ export default () => {
         onFinish={handleCreate}
       >
         <Form.Item
-          label="Capacity"
+          label={
+            <div className="custom-form-label">
+              <span>Capacity</span>
+              <Popover
+                content={"Total Staked Jetton To Accept"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
           name="cap"
           rules={[
             {
@@ -275,7 +285,18 @@ export default () => {
         </Form.Item>
 
         <Form.Item
-          label="Release Time"
+          label={
+            <div className="custom-form-label">
+              <span>Release Time</span>
+              <Popover
+                content={"Time to enable user claim"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
           name="releaseTime"
           rules={[{ required: !startNow, message: "Release time is required" }]}
         >
@@ -290,12 +311,23 @@ export default () => {
         </Form.Item>
 
         <Form.Item
-          label="Sold Jetton"
+          label={
+            <div className="custom-form-label">
+              <span>Offering Jetton</span>
+              <Popover
+                content={"Jetton offering for this launchpad"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
           name="soldJetton"
           rules={[
             {
               required: true,
-              message: "Please input sold jetton contract address.",
+              message: "Please input offering jetton contract address.",
             },
             {
               max: 64,
@@ -304,7 +336,7 @@ export default () => {
             },
           ]}
         >
-          <Input className="dao-form-input" placeholder="Sold jetton" />
+          <Input className="dao-form-input" placeholder="Offering jetton" />
         </Form.Item>
         <Checkbox
           checked={useSourceTon}
@@ -316,12 +348,23 @@ export default () => {
           Use TON
         </Checkbox>
         <Form.Item
-          label="Source Jetton"
+          label={
+            <div className="custom-form-label">
+              <span>Staked Jetton</span>
+              <Popover
+                content={"Paid Jetton"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
           name="sourceJetton"
           rules={[
             {
               required: true,
-              message: "Please input source token contract address.",
+              message: "Please input staked token contract address.",
             },
             {
               max: 64,
@@ -332,7 +375,7 @@ export default () => {
         >
           <Input
             className="dao-form-input"
-            placeholder="Source jetton"
+            placeholder="Staked jetton"
             disabled={useSourceTon}
           />
         </Form.Item>
@@ -354,7 +397,7 @@ export default () => {
           />
         </Form.Item>
         <p className="exchange-rate-tip">
-          1 {useSourceTon ? "TON" : "Source Token"} = {exchangeRate} Sold Token
+          1 {useSourceTon ? "TON" : "Staked"} = {exchangeRate} Offering
         </p>
         <div className="proposal-footer-btns">
           <Button
