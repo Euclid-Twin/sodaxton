@@ -33,6 +33,7 @@ import {
   getJettonBalance,
   getLaunchpadInfo,
   getJettonTransferTx,
+  sleep,
 } from "@/utils/index";
 import { Address, beginCell, fromNano, toNano } from "ton";
 import { LaunchPadInfo, saveTelegramMsgData } from "@/api/apis";
@@ -46,6 +47,7 @@ import {
   getWalletSeqno,
   waitWalletSeqnoIncrease,
   getClaimUnsoldJettonTx,
+  getJettonDetails,
 } from "@/utils";
 import useSendTransaction from "@/hooks/useSendTransaction";
 
@@ -60,9 +62,12 @@ export default () => {
   const [buyedSoldAmount, setBuyedSoldAmount] = useState(0);
   const [stakedSourceAmount, setStakedSourceAmount] = useState(0);
   const [unsoldAmount, setUnsoldAmount] = useState(0);
+  const [launchpadSourceBalance, setLaunchpadSourceBalance] = useState(0);
   const [sourceBalance, setSourceBalance] = useState(0);
   const [formShow, setFormShow] = useState(false);
   const [buyAmount, setBuyAmount] = useState(0);
+  const [soldMetadata, setSoldMetadata] = useState<any>();
+  const [sourceMetadata, setSourceMetadata] = useState<any>();
   const { sendTransaction } = useSendTransaction();
 
   const fetchLaunchpadState = async () => {
@@ -96,25 +101,49 @@ export default () => {
   }, [currentLaunchpad, buyAmount]);
 
   const fetchAmount = async () => {
-    if (currentLaunchpad) {
+    if (currentLaunchpad && address) {
       const purchasedAmount = await getPurchasedAmount(
         currentLaunchpad,
         address
       );
       const stakedAmount =
         (purchasedAmount * ExRate_BASE) / currentLaunchpad.exRate;
-      const unsold = await getJettonBalance(
-        currentLaunchpad.soldJetton,
-        currentLaunchpad.address
-      );
       setBuyedSoldAmount(purchasedAmount);
       setStakedSourceAmount(stakedAmount);
-      setUnsoldAmount(unsold);
+    }
+  };
+  const fetchUnsoldAmount = async () => {
+    if (currentLaunchpad.address) {
+      if (currentLaunchpad.soldJetton) {
+        const unsold = await getJettonBalance(
+          currentLaunchpad.soldJetton,
+          currentLaunchpad.address
+        );
+        setUnsoldAmount(unsold);
+      }
+
+      if (currentLaunchpad.sourceJetton) {
+        const balance = await getJettonBalance(
+          currentLaunchpad.sourceJetton,
+          currentLaunchpad.address
+        );
+        setLaunchpadSourceBalance(balance);
+      } else {
+        const balance = await tonClient.getBalance(
+          Address.parse(currentLaunchpad.address)
+        );
+        setLaunchpadSourceBalance(Number(fromNano(balance)));
+      }
     }
   };
 
   useEffect(() => {
-    fetchAmount();
+    (async () => {
+      await sleep(1); //avoid exceed 10 requests per second
+      fetchAmount();
+      await sleep(1); //avoid exceed 10 requests per second
+      fetchUnsoldAmount();
+    })();
   }, [currentLaunchpad, address]);
 
   useEffect(() => {
@@ -143,6 +172,19 @@ export default () => {
       }
     })();
   }, [currentLaunchpad, address]);
+
+  useEffect(() => {
+    (async () => {
+      if (currentLaunchpad.soldJetton) {
+        const jetton = await getJettonDetails(currentLaunchpad.soldJetton);
+        setSoldMetadata(jetton.metadata);
+      }
+      if (currentLaunchpad.sourceJetton) {
+        const jetton = await getJettonDetails(currentLaunchpad.sourceJetton);
+        setSourceMetadata(jetton.metadata);
+      }
+    })();
+  }, [currentLaunchpad]);
 
   // useEffect(() => {
   //   fetchLaunchpadState();
@@ -187,6 +229,7 @@ export default () => {
         }
       );
       fetchAmount();
+      fetchUnsoldAmount();
       setSubmitting(false);
     } catch (e) {
       message.error("Buy failed.");
@@ -287,11 +330,19 @@ export default () => {
           <span className="value">{currentLaunchpad?.cap}</span>
         </div>
         <div className="launchpad-info-item">
-          <span className="label">Exchange Rate</span>
-          <span className="value">{sourceNeedStateAmount}</span>
+          <span className="label">Source Balance</span>
+          <span className="value">
+            {launchpadSourceBalance} / {currentLaunchpad?.cap}
+          </span>
         </div>
         <div className="launchpad-info-item">
-          <span className="label">Sold Jetton Address</span>
+          <span className="label">Exchange Rate</span>
+          <span className="value">
+            {currentLaunchpad?.exRate / ExRate_BASE}
+          </span>
+        </div>
+        <div className="launchpad-info-item">
+          <span className="label">Sold Jetton</span>
           <span
             className="value value-link"
             onClick={() => {
@@ -300,20 +351,24 @@ export default () => {
               );
             }}
           >
-            {currentLaunchpad?.soldJetton}
+            {soldMetadata?.name}({soldMetadata?.symbol})
           </span>
         </div>
         <div className="launchpad-info-item">
-          <span className="label">Source Jetton Address</span>
+          <span className="label">Source Jetton</span>
           <span
             className="value value-link"
             onClick={() => {
-              window.open(
-                `${process.env.TON_API_EXPLORER}/account/${currentLaunchpad?.sourceJetton}`
-              );
+              if (currentLaunchpad.sourceJetton) {
+                window.open(
+                  `${process.env.TON_API_EXPLORER}/account/${currentLaunchpad?.sourceJetton}`
+                );
+              }
             }}
           >
-            {currentLaunchpad?.sourceJetton}
+            {currentLaunchpad.sourceJetton
+              ? `${sourceMetadata?.name}(${sourceMetadata?.symbol})`
+              : "TON"}
           </span>
         </div>
       </div>
@@ -331,7 +386,7 @@ export default () => {
           <Button
             type="primary"
             className="default-btn btn-buy"
-            disabled={releaseTimePassed}
+            disabled={releaseTimePassed || unsoldAmount === 0}
             onClick={handleBuy}
             loading={submitting}
           >

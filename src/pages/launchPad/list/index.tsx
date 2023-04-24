@@ -8,6 +8,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 import { PAGE_SIZE } from "@/utils/constant";
 import { isDaoAdmin } from "@/utils";
+
 export default () => {
   const [list, setList] = useState<LaunchPadInfo[]>([]);
   const [loading, setLoading] = useState(false);

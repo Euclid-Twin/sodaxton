@@ -14,6 +14,8 @@ import BN from "bn.js";
 import { OPS } from "@/utils/jetton-minter.deploy";
 import { LaunchPadInfo, getBindResult } from "@/api/apis";
 import { getChatAdmins } from "@/api";
+import { makeGetCall, cellToAddress } from "./lib/make-get-call";
+import { readJettonMetadata } from "./lib/jetton-minter";
 export const formatTimestamp = (
   timestamp?: number | string,
   format: string = "MM/DD/YYYY"
@@ -310,8 +312,8 @@ export async function getClaimSoldJettonTx(
     payload: payload.toBoc().toString("base64"),
   };
 }
-export async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms * 1000));
+export async function sleep(seconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 export const getWalletSeqno = async (address: string) => {
   const walletContract = tonClient.openWalletFromAddress({
@@ -397,4 +399,22 @@ export const getPurchasedAmount = async (
   );
   console.log("purchased amount is", purchasedAmount);
   return purchasedAmount;
+};
+
+export const getJettonDetails = async (address: string) => {
+  const contractAddr = Address.parse(address);
+
+  const minter = await makeGetCall(
+    contractAddr,
+    "get_jetton_data",
+    [],
+    async ([totalSupply, __, adminCell, contentCell]) => ({
+      ...(await readJettonMetadata(contentCell as unknown as Cell)),
+      admin: cellToAddress(adminCell),
+      totalSupply: totalSupply as BN,
+    }),
+    tonClient
+  );
+  console.log("jetton: ", minter);
+  return minter;
 };
