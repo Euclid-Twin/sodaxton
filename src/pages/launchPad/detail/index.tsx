@@ -90,7 +90,7 @@ export default () => {
 
   const sourceNeedStateAmount = useMemo(() => {
     if (currentLaunchpad) {
-      return (buyAmount * currentLaunchpad.exRate) / ExRate_BASE;
+      return (buyAmount * ExRate_BASE) / currentLaunchpad.exRate;
     }
     return 0;
   }, [currentLaunchpad, buyAmount]);
@@ -181,11 +181,11 @@ export default () => {
         "Buy launchpad sold",
         "Buy successfully",
         "Buy failed.",
-        () => {
+        async () => {
           setFormShow(false);
+          await waitWalletSeqnoIncrease(address, seqno);
         }
       );
-      await waitWalletSeqnoIncrease(address, seqno);
       fetchAmount();
       setSubmitting(false);
     } catch (e) {
@@ -288,19 +288,33 @@ export default () => {
         </div>
         <div className="launchpad-info-item">
           <span className="label">Exchange Rate</span>
-          <span className="value">
-            {currentLaunchpad?.exRate
-              ? currentLaunchpad?.exRate / ExRate_BASE
-              : 0}
-          </span>
+          <span className="value">{sourceNeedStateAmount}</span>
         </div>
         <div className="launchpad-info-item">
           <span className="label">Sold Jetton Address</span>
-          <span className="value">{currentLaunchpad?.soldJetton}</span>
+          <span
+            className="value value-link"
+            onClick={() => {
+              window.open(
+                `${process.env.TON_API_EXPLORER}/account/${currentLaunchpad?.soldJetton}`
+              );
+            }}
+          >
+            {currentLaunchpad?.soldJetton}
+          </span>
         </div>
         <div className="launchpad-info-item">
           <span className="label">Source Jetton Address</span>
-          <span className="value">{currentLaunchpad?.sourceJetton}</span>
+          <span
+            className="value value-link"
+            onClick={() => {
+              window.open(
+                `${process.env.TON_API_EXPLORER}/account/${currentLaunchpad?.sourceJetton}`
+              );
+            }}
+          >
+            {currentLaunchpad?.sourceJetton}
+          </span>
         </div>
       </div>
 
@@ -403,7 +417,7 @@ export default () => {
               {currentLaunchpad!.sourceJetton ? "Source" : "TON"} to stake:{" "}
             </span>
             <span className="value">
-              {(buyAmount * currentLaunchpad!.exRate) / ExRate_BASE}
+              {(buyAmount * ExRate_BASE) / currentLaunchpad!.exRate}
             </span>
           </div>
           <div className="launchpad-info-item">

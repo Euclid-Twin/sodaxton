@@ -2,6 +2,7 @@ import { defineConfig } from "umi";
 import "./loadEnv";
 export default defineConfig({
   define: {
+    "process.env.TON_API_EXPLORER": process.env.TON_API_EXPLORER,
     "process.env.BOT_TOKEN": process.env.BOT_TOKEN,
     "process.env.APP_ENV": process.env.APP_ENV,
     "process.env.TON_API_TOKEN": process.env.TON_API_TOKEN,
