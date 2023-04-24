@@ -139,8 +139,7 @@ export default () => {
       // await transfer();
       // return;
       const values = await form.getFieldsValue();
-      const values2 = await form.validateFields();
-      console.log("values: ", values, values2);
+      console.log("values: ", values);
       const releaseTime = Math.ceil(values.releaseTime.valueOf() / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
       const cap = toNano(values.cap); //toNano("10");
       const exRate = values.rate * base; //base * 2; // 1 SOURCE = 2 SOLD
@@ -370,7 +369,6 @@ export default () => {
           <Button
             type="primary"
             className="primary-btn btn-create"
-            onClick={handleCreate}
             loading={submitting}
             htmlType="submit"
           >

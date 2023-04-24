@@ -274,6 +274,7 @@ export const getChatAdmins = async (chatId: number) => {
     return res.result || [];
   } catch (e) {
     console.log(e);
+    return [];
   }
 };
 

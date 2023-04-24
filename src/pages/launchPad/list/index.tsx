@@ -50,6 +50,12 @@ export default () => {
     }
   };
 
+  const addressDisplay = (addr: string) => {
+    if (addr) {
+      return addr.substr(0, 8) + "..." + addr.substr(-8);
+    }
+  };
+
   useEffect(() => {
     getLaunchPads();
   }, []);
@@ -81,7 +87,7 @@ export default () => {
         height={500}
         className="dao-list"
         endMessage={
-          <p style={{ textAlign: "center" }}>
+          <p className="list-end-text">
             <b>Yay! You have seen it all</b>
           </p>
         }
@@ -99,12 +105,14 @@ export default () => {
                 <p>
                   Source Jetton:{" "}
                   <span className="launchpad-list-addr">
-                    {item.sourceJetton}
+                    {addressDisplay(item.sourceJetton)}
                   </span>
                 </p>
                 <p>
                   Sold Jetton:{" "}
-                  <span className="launchpad-list-addr">{item.soldJetton}</span>{" "}
+                  <span className="launchpad-list-addr">
+                    {addressDisplay(item.soldJetton)}
+                  </span>{" "}
                 </p>
               </div>
 

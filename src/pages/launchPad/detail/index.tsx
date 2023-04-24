@@ -319,6 +319,7 @@ export default () => {
             className="default-btn btn-buy"
             disabled={releaseTimePassed}
             onClick={handleBuy}
+            loading={submitting}
           >
             Buy
           </Button>
@@ -345,6 +346,7 @@ export default () => {
             className="default-btn btn-claim-jetton"
             disabled={!releaseTimePassed}
             onClick={adminClaimUnsoldJetton}
+            loading={submitting}
           >
             Claim unsold jetton
           </Button>
