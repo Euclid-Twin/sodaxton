@@ -54,8 +54,6 @@ import useSendTransaction from "@/hooks/useSendTransaction";
 export default () => {
   const { currentDao, address, currentLaunchpad } = useModel("app");
   const [submitting, setSubmitting] = useState(false);
-  const [startTime, setStartTime] = useState("");
-  const [startNow, setStartNow] = useState(false);
   const [launchpadState, setLaunchpadState] = useState<LaunchPadInfo>();
   const [form] = Form.useForm();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -70,25 +68,28 @@ export default () => {
   const [sourceMetadata, setSourceMetadata] = useState<any>();
   const { sendTransaction } = useSendTransaction();
 
-  const fetchLaunchpadState = async () => {
-    if (currentLaunchpad) {
-      const info = await getLaunchpadInfo(currentLaunchpad?.address);
-      info && setLaunchpadState(info);
-    }
-  };
-
-  const releaseTime = useMemo(() => {
+  const startTime = useMemo(() => {
     if (currentLaunchpad) {
       return formatTimestamp(
-        currentLaunchpad.releaseTime * 1000,
+        currentLaunchpad.startTime * 1000,
         "YYYY/MM/DD HH:MM"
       );
     }
   }, [currentLaunchpad]);
 
-  const releaseTimePassed = useMemo(() => {
+  const durationPassed = useMemo(() => {
     if (currentLaunchpad) {
-      return currentLaunchpad.releaseTime * 1000 < Date.now();
+      return (
+        (currentLaunchpad.startTime + currentLaunchpad.duration) * 1000 <
+        Date.now()
+      );
+    }
+    return false;
+  }, [currentLaunchpad]);
+
+  const startTimePassed = useMemo(() => {
+    if (currentLaunchpad) {
+      return currentLaunchpad.startTime * 1000 < Date.now();
     }
     return false;
   }, [currentLaunchpad]);
@@ -140,9 +141,9 @@ export default () => {
   useEffect(() => {
     (async () => {
       await sleep(1); //avoid exceed 10 requests per second
-      fetchAmount();
+      await fetchAmount();
       await sleep(1); //avoid exceed 10 requests per second
-      fetchUnsoldAmount();
+      await fetchUnsoldAmount();
     })();
   }, [currentLaunchpad, address]);
 
@@ -245,25 +246,26 @@ export default () => {
     try {
       setSubmitting(true);
       const info = currentLaunchpad!;
-      if (Date.now() / 1000 < info.releaseTime) {
+      if (Date.now() / 1000 < info.startTime + info.duration) {
         message.warn("LaunchPad not finish");
         return;
       }
       const accountTimeLockAddr = await getAccountTimeLockAddr(
         address,
-        info.releaseTime
+        info.startTime + info.duration
       );
       const contractStates = await tonClient.getContractState(
         accountTimeLockAddr
       );
       console.log("contractStates: ", contractStates);
+      const seqno = await getWalletSeqno(address);
       if (!contractStates.code || !contractStates.data) {
         const timelockDeployTx = await getDeployTimelockTx(
           info,
           address,
           accountTimeLockAddr.toFriendly()
         );
-        const seqno = await getWalletSeqno(address);
+
         await sendTransaction(timelockDeployTx, "Deploy timelock", "", "");
         await waitWalletSeqnoIncrease(address, seqno);
       }
@@ -279,6 +281,9 @@ export default () => {
         "Claim failed"
       );
       setSubmitting(false);
+      await waitWalletSeqnoIncrease(address, seqno + 1);
+      fetchAmount();
+      fetchUnsoldAmount();
     } catch (e) {
       message.error("Claim failed.");
       setSubmitting(false);
@@ -286,34 +291,56 @@ export default () => {
   };
 
   const adminClaimSourceJettonOrTon = async () => {
-    const info = currentLaunchpad!;
-    const tx = {
-      to: info.address,
-      value: 0.1,
-      payload: beginCell()
-        .storeUint(1, 32) // op
-        .storeUint(0, 64) // query id
-        .endCell()
-        .toBoc()
-        .toString("base64"),
-    };
-    await sendTransaction(
-      tx,
-      "Claim Staked Jetton",
-      "Claim Staked Jetton successfully",
-      "Claim Staked Jetton faield"
-    );
+    try {
+      const info = currentLaunchpad!;
+      const tx = {
+        to: info.address,
+        value: 0.1,
+        payload: beginCell()
+          .storeUint(1, 32) // op
+          .storeUint(0, 64) // query id
+          .endCell()
+          .toBoc()
+          .toString("base64"),
+      };
+      const seqno = await getWalletSeqno(address);
+      await sendTransaction(
+        tx,
+        "Claim Staked Jetton",
+        "Claim Staked Jetton successfully",
+        "Claim Staked Jetton faield"
+      );
+      await waitWalletSeqnoIncrease(address, seqno);
+      await fetchUnsoldAmount();
+      setSubmitting(false);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const adminClaimUnsoldJetton = async () => {
-    const info = currentLaunchpad!;
-    const tx = await getClaimUnsoldJettonTx(info, address);
-    await sendTransaction(
-      tx,
-      "Claim Offering Jetton",
-      "Claim Offering Jetton successfully",
-      "Claim Offering Jetton"
-    );
+    try {
+      setSubmitting(true);
+      const info = currentLaunchpad!;
+      const tx = await getClaimUnsoldJettonTx(info, address);
+      const seqno = await getWalletSeqno(address);
+
+      await sendTransaction(
+        tx,
+        "Claim Offering Jetton",
+        "Claim Offering Jetton successfully",
+        "Claim Offering Jetton"
+      );
+      await waitWalletSeqnoIncrease(address, seqno);
+      await fetchUnsoldAmount();
+      setSubmitting(false);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -322,13 +349,15 @@ export default () => {
       <Back />
       <div className="launchpad-info">
         <div className="launchpad-info-item">
-          <span className="label">Release Time: </span>
-          <span className="value">{releaseTime}</span>
+          <span className="label">Start Time: </span>
+          <span className="value">{startTime}</span>
         </div>
-        {/* <div className="launchpad-info-item">
-          <span className="label">Capacity</span>
-          <span className="value">{currentLaunchpad?.cap}</span>
-        </div> */}
+        <div className="launchpad-info-item">
+          <span className="label">Duration</span>
+          <span className="value">
+            {currentLaunchpad?.duration / (24 * 3600)} Days
+          </span>
+        </div>
         <div className="launchpad-info-item">
           <span className="label">Stake Balance: </span>
           <span className="value">
@@ -388,7 +417,7 @@ export default () => {
           <Button
             type="primary"
             className="default-btn btn-buy"
-            disabled={releaseTimePassed || unsoldAmount === 0}
+            disabled={!startTimePassed || durationPassed || unsoldAmount === 0}
             onClick={handleBuy}
             loading={submitting}
           >
@@ -398,7 +427,7 @@ export default () => {
             type="primary"
             className="primary-btn btn-claim"
             loading={submitting}
-            disabled={!releaseTimePassed || stakedSourceAmount === 0}
+            disabled={!durationPassed || stakedSourceAmount === 0}
             onClick={handleClaim}
           >
             Claim
@@ -418,7 +447,7 @@ export default () => {
               <Button
                 type="primary"
                 className="default-btn btn-claim-jetton"
-                disabled={!releaseTimePassed}
+                disabled={!durationPassed || unsoldAmount === 0}
                 onClick={adminClaimUnsoldJetton}
                 loading={submitting}
               >
@@ -428,7 +457,7 @@ export default () => {
                 type="primary"
                 className="default-btn btn-claim-source"
                 loading={submitting}
-                disabled={!releaseTimePassed}
+                disabled={!durationPassed || launchpadSourceBalance === 0}
                 onClick={adminClaimSourceJettonOrTon}
               >
                 Claim Staked Jetton or TON

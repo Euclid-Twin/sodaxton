@@ -1,16 +1,21 @@
 import "./index.less";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useModel, history } from "umi";
-import { LaunchPadInfo, getTgRawMessages } from "@/api/apis";
+import { LaunchPadInfo, getLaunchpadInfoList } from "@/api/apis";
 import { message, Spin, Button } from "antd";
 import Back from "@/components/Back";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-import { PAGE_SIZE } from "@/utils/constant";
+// import { PAGE_SIZE } from "@/utils/constant";
 import { isDaoAdmin, getJettonDetails } from "@/utils";
 
+const PageSize = 5;
+interface LaunchItem extends LaunchPadInfo {
+  sourceName: string;
+  soldName: string;
+}
 export default () => {
-  const [list, setList] = useState<LaunchPadInfo[]>([]);
+  const [list, setList] = useState<LaunchItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -29,47 +34,56 @@ export default () => {
     })();
   }, [currentDao, address]);
   const getLaunchPads = async () => {
-    // if (currentDao) {
-    try {
-      setLoading(true);
-      const res = await getTgRawMessages(Number(currentDao?.id));
-      const _list = res.map((item: any) => JSON.parse(item.data));
-      const metadatas = [];
-      for (const item of _list) {
-        const data = await Promise.all([
-          getJettonDetails(item.soldJetton),
-          item.sourceJetton
-            ? getJettonDetails(item.sourceJetton)
-            : Promise.resolve("TON"),
-        ]);
-        metadatas.push(data);
-      }
-      for (let i = 0; i < _list.length; i++) {
-        if (metadatas[i][0] && metadatas[i][1]) {
-          _list[i].soldName =
-            metadatas[i][0].metadata.name +
-            ` (${metadatas[i][0].metadata.symbol})`;
-          _list[i].sourceName =
-            metadatas[i][1] === "TON"
-              ? "TON"
-              : metadatas[i][1].metadata.name +
-                ` (${metadatas[i][1].metadata.symbol})`;
+    if (currentDao) {
+      try {
+        setLoading(true);
+        const res = await getLaunchpadInfoList({
+          group_id: currentDao.id,
+          order_mode: 2,
+          gap: PageSize,
+          page: page.current,
+        });
+        if (res && res.data) {
+          const { total, data } = res;
+          const _list: any[] = data;
+          const metadatas = [];
+          for (const item of _list) {
+            const data = await Promise.all([
+              getJettonDetails(item.soldJetton),
+              item.sourceJetton
+                ? getJettonDetails(item.sourceJetton)
+                : Promise.resolve("TON"),
+            ]);
+            metadatas.push(data);
+          }
+          for (let i = 0; i < _list.length; i++) {
+            if (metadatas[i][0] && metadatas[i][1]) {
+              _list[i].soldName =
+                metadatas[i][0].metadata.name +
+                ` (${metadatas[i][0].metadata.symbol})`;
+              _list[i].sourceName =
+                metadatas[i][1] === "TON"
+                  ? "TON"
+                  : metadatas[i][1].metadata.name +
+                    ` (${metadatas[i][1].metadata.symbol})`;
+            }
+          }
+          if (data.length > 0) {
+            page.current += 1;
+            if (data.length < PageSize) {
+              setHasMore(false);
+            }
+          } else {
+            setHasMore(false);
+          }
+          console.log(list);
+          setList([...list, ..._list]);
         }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoading(false);
       }
-      if (res.length > 0) {
-        page.current += 1;
-        if (res.length < PAGE_SIZE) {
-          setHasMore(false);
-        }
-      } else {
-        setHasMore(false);
-      }
-      console.log(list);
-      setList([...list, ..._list]);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
     }
   };
 

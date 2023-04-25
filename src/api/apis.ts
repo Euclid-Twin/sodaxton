@@ -374,12 +374,13 @@ export const saveTelegramMsgData = async (params: {
 
 export interface LaunchPadInfo {
   address: string;
-  releaseTime: number;
+  startTime: number;
+  duration: number;
   exRate: number;
   soldJetton: string;
   sourceJetton: string;
   cap: number;
-  received: number;
+  // received: number;
   owner: string;
 }
 
@@ -400,5 +401,59 @@ export const getTgRawMessages = async (chat_id: number, page?: number) => {
     return res.data.data;
   } else {
     return [];
+  }
+};
+
+export const saveLaunchpadInfo = async (params: {
+  group_id: string;
+  is_mainnet: boolean;
+  address: string;
+  start_time: number;
+  duration: number;
+  ex_rate: number;
+  source_jetton: string;
+  sold_jetton: string;
+  cap: number;
+  owner: string;
+}) => {
+  const url = `${API_HOST}/ton/launchpad/create`;
+  const res = await httpRequest({
+    url,
+    params,
+    type: HttpRequestType.POST,
+  });
+  return res;
+};
+
+export const getLaunchpadInfoList = async (params: {
+  group_id: string;
+  is_mainnet?: boolean;
+  order_mode?: 1 | 2;
+  page?: number;
+  gap?: number;
+}) => {
+  const url = `${API_HOST}/ton/launchpad/list`;
+  params.is_mainnet = CHAIN_NAME === "TONmain";
+  const res = await httpRequest({
+    url,
+    params,
+    type: HttpRequestType.GET,
+  });
+  if (res && res.data) {
+    const { total, data } = res.data;
+    const list = data.map((item: any) => ({
+      address: item.address,
+      startTime: item.start_time,
+      duration: item.duration,
+      exRate: item.ex_rate,
+      soldJetton: item.sold_jetton,
+      sourceJetton: item.source_jetton,
+      cap: item.cap,
+      owner: item.owner,
+    }));
+    return {
+      total,
+      data: list as LaunchPadInfo[],
+    };
   }
 };

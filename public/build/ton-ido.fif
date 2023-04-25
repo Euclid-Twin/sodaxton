@@ -13,7 +13,7 @@ PROGRAM{
   DECLPROC save_data
   DECLPROC load_data
   DECLPROC recv_internal
-  DECLPROC deploy_time_lock
+  DECLPROC calculate_time_lock_addr
   108001 DECLMETHOD get_info
   121950 DECLMETHOD get_jetton_wallet_addr
   77389 DECLMETHOD my_balance
@@ -148,18 +148,20 @@ PROGRAM{
     calculate_jetton_wallet_address INLINECALLDICT
   }>
   save_data PROCINLINE:<{
-    s0 s8 XCHG
+    s0 s9 XCHG
     NEWC
     64 STU
-    s1 s7 XCHG
+    s1 s8 XCHG
     64 STU
-    s1 s3 XCHG
+    s1 s6 XCHG
+    64 STU
+    s1 s2 XCHG
     64 STU
     64 STU
     ENDC
     NEWC
     STREF
-    s0 s3 XCHG2
+    ROT
     STSLICER
     SWAP
     STSLICER
@@ -178,18 +180,20 @@ PROGRAM{
     CTOS
     64 LDU
     64 LDU
-    s0 s3 XCHG
+    64 LDU
+    s0 s4 XCHG
     LDMSGADDR
     LDMSGADDR
-    s0 s5 XCHG
-    64 LDU
-    64 LDU
-    DROP
     s0 s6 XCHG
+    64 LDU
+    64 LDU
+    DROP
+    s0 s7 XCHG
     LDREF
     LDREF
     LDMSGADDR
     DROP
+    s8 s9 XCHG
     s7 s8 XCHG
     s6 s7 XCHG
     s5 s6 XCHG
@@ -211,34 +215,42 @@ PROGRAM{
     DUP
     force_chain CALLDICT
     load_data CALLDICT
+    s9 s8 PUSH2
+    ADD
     MYADDR
-    s6 s3 PUSH2
+    s7 s4 PUSH2
     calculate_user_jetton_wallet_address INLINECALLDICT
-    s12 PUSH
+    s14 PUSH
     SEMPTY
     IFJMP:<{
-      s12 POP
-      s6 PUSH
+      s14 POP
+      s7 PUSH
       2 PLDU
       0 EQINT
       304 THROWIFNOT
       100000000 PUSHINT
-      s11 s11 XCPU
+      s13 s13 XCPU
       SUB
       DUP
       0 GTINT
       302 THROWIFNOT
-      s9 PUSH
+      OVER
       NOW
       LESS
-      s5 s1 PUSH2
+      NOW
+      s13 PUSH
+      LESS
+      s7 s2 PUSH2
       ADD
-      s7 PUSH
+      s9 PUSH
       GREATER
+      s0 s2 XCHG
+      OR
+      SWAP
       OR
       IFJMP:<{
-        s11 POP
-        9 BLKDROP
+        s13 POP
+        11 BLKDROP
         s2 POP
         NEWC
         ENDC
@@ -246,42 +258,41 @@ PROGRAM{
         2 PUSHINT
         send_simple_message INLINECALLDICT
       }>
-      s0 s8 PUSH2
+      s0 s9 PUSH2
       MUL
       1000000 PUSHINT
       DIV
       0 PUSHINT
-      s4 s11 s0 PUSH3
-      s0 s15 XCHG
-      deploy_time_lock CALLDICT
-      s1 s3 XCHG
-      s13 s13 s0 XCHG3
+      s5 s(-1) s(-1) PUXCPU
+      s0 16 s() XCHG
+      s1 s5 XCHG
+      calculate_time_lock_addr CALLDICT
+      s3 s14 XCHG
+      s2 s14 XCHG
       create_simple_transfer_body INLINECALLDICT
       0 PUSHINT
       SWAP
       32 STU
       ENDC
-      s11 s12 s0 XCHG3
+      s12 s13 s0 XCHG3
       2 PUSHINT
       send_simple_message INLINECALLDICT
-      s0 s7 XCHG
+      s0 s8 XCHG
       ADD
-      s5 s8 XCHG
-      s4 s7 XCHG
-      s3 s6 XCHG
-      s5 s1 s3 XCHG3
-      s4 s2 XCHG2
+      s6 s9 XCHG
+      3 6 BLKSWAP
+      s1 s2 XCHG
       save_data INLINECALLDICT
     }>
-    s11 s8 XCHG2
-    8 BLKDROP
+    9 3 BLKDROP2
+    s4 POP
     s0 s4 XCHG
     32 LDU
     64 LDU
-    s5 s4 PUSH2
+    s3 s4 PUSH2
     SDEQ
     303 THROWIFNOT
-    s0 s3 XCHG
+    s0 s6 XCHG
     NOW
     LESS
     301 THROWIFNOT
@@ -300,11 +311,12 @@ PROGRAM{
     s3 POP
     2 EQINT
     IFJMP:<{
+      s0 s3 XCHG
       64 LDU
       DROP
       s1 s2 XCHG
       0 PUSHINT
-      s0 s2 XCHG
+      s0 s1 s4 XCHG3
       create_simple_transfer_body INLINECALLDICT
       0 PUSHINT
       SWAP
@@ -318,7 +330,7 @@ PROGRAM{
     }>
     4 BLKDROP
   }>
-  deploy_time_lock PROC:<{
+  calculate_time_lock_addr PROC:<{
     SWAP
     NEWC
     64 STU
@@ -351,10 +363,9 @@ PROGRAM{
     load_data CALLDICT
     s2 s4 XCHG
     4 BLKDROP
-    2 2 BLKDROP2
-    s2 POP
+    4 2 BLKDROP2
     MYADDR
-    s0 s2 XCHG
+    -ROT
     calculate_user_jetton_wallet_address INLINECALLDICT
   }>
   my_balance PROC:<{

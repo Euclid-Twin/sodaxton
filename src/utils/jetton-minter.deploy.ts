@@ -1,5 +1,6 @@
-import { Address, beginCell, Cell, Slice } from "ton";
+import { Address, beginCell, Cell, Dictionary, Slice } from "ton";
 
+import { Sha256 } from "@aws-crypto/sha256-js";
 import BN from "bn.js";
 import { string } from "fast-glob/out/utils";
 
@@ -69,36 +70,4 @@ export function initData() {
     image: jettonParams.image,
     description: jettonParams.description,
   });
-}
-
-export enum OPS {
-  // Transfer = 0xf8a7ea5,
-  // Transfer_notification = 0x7362d09c,
-  // Internal_transfer = 0x178d4519,
-  // Excesses = 0xd53276db,
-  // Burn = 0x595f07bc,
-  // Burn_notification = 0x7bdd97de,
-  // ClaimRewards = 0x5a3e000,
-  // ClaimRewardsNotification = 0x5a3e001,
-  Mint = 21,
-  InternalTransfer = 0x178d4519,
-  Transfer = 0xf8a7ea5,
-}
-export function transferBody(
-  toOwnerAddress: Address,
-  jettonValue: number | BN,
-  forwardAmount?: BN
-): Cell {
-  return (
-    beginCell()
-      .storeUint(OPS.Transfer, 32)
-      .storeUint(0, 64) // queryid
-      .storeCoins(jettonValue)
-      .storeAddress(toOwnerAddress)
-      .storeAddress(null) // TODO RESP?
-      .storeDict(null) // custom payload
-      .storeCoins(forwardAmount ?? 0) // forward ton amount
-      // .storeMaybeRef(null) // forward payload - TODO??
-      .endCell()
-  );
 }

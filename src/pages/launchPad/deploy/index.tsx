@@ -22,7 +22,7 @@ import {
   StateInit,
   fromNano,
 } from "ton";
-import { JETTON_WALLET_CODE, transferBody } from "@/utils/jetton-minter.deploy";
+import { JETTON_WALLET_CODE } from "@/utils/jetton-minter.deploy";
 import BN from "bn.js";
 const TextArea = Input.TextArea;
 const { RangePicker } = DatePicker;
@@ -48,14 +48,15 @@ import {
   readFile,
   waitWalletSeqnoIncrease,
 } from "@/utils/index";
-import { saveTelegramMsgData } from "@/api/apis";
+import { saveLaunchpadInfo } from "@/api/apis";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useTonhubConnect } from "react-ton-x";
 import { WalletName } from "@/models/app";
 import useSendTransaction from "@/hooks/useSendTransaction";
 
 const createDeployLaunchPadTx = async (
-  releaseTime: number,
+  startTime: number,
+  duration: number,
   cap: number | BN,
   ownerAddress: string,
   exRate: number,
@@ -71,7 +72,8 @@ const createDeployLaunchPadTx = async (
   let dataCell = beginCell()
     .storeRef(
       beginCell()
-        .storeUint(releaseTime, 64)
+        .storeUint(startTime, 64)
+        .storeUint(duration, 64)
         .storeUint(exRate, 64)
         .storeUint(cap, 64)
         .storeUint(0, 64)
@@ -139,7 +141,8 @@ export default () => {
       // return;
       const values = await form.getFieldsValue();
       console.log("values: ", values);
-      const releaseTime = Math.ceil(values.releaseTime.valueOf() / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
+      const startTime = Math.ceil(values.startTime.valueOf() / 1000); //Math.ceil(Date.now() / 1000 + 5 * 60);
+      const duration = Math.round(values.duration * 24 * 3600); // seconds;
       const cap = toNano(values.cap); //toNano("10");
       const exRate = values.rate * base; //base * 2; // 1 SOURCE = 2 SOLD
       const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
@@ -155,7 +158,8 @@ export default () => {
       const seqno = await getWalletSeqno(address);
 
       let tx = await createDeployLaunchPadTx(
-        releaseTime,
+        startTime,
+        duration,
         cap,
         address,
         exRate,
@@ -176,26 +180,21 @@ export default () => {
       let info;
       if (!info) {
         info = {
+          group_id: currentDao?.id!,
+          is_mainnet: CHAIN_NAME === "TONmain",
           address: tx.to, //"kQCxIKjhSngK3TdH-FEdWvk_Z0SRi_yevI4gEr90YUXPIDq4", // tx.to,
-          releaseTime: releaseTime,
-          exRate: exRate,
-          soldJetton: values.soldJetton, // "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-          sourceJetton: useSourceTon ? "" : values.sourceJetton, // "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
+          start_time: startTime,
+          duration: duration,
+          ex_rate: exRate,
+          sold_jetton: values.soldJetton, // "kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
+          source_jetton: useSourceTon ? "" : values.sourceJetton, // "kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN",
           cap: values.cap,
-          received: 0,
           owner: address,
         };
       }
       console.log("info: ", info);
-      const msgData = { ...info };
-      await saveTelegramMsgData({
-        group_id: currentDao?.id!,
-        message_id: info.address,
-        type: "LaunchPad",
-        data: JSON.stringify(msgData),
-      });
-
       await transfer(info);
+      await saveLaunchpadInfo(info);
       // await participate(info);
       setSubmitting(false);
     } catch (e) {
@@ -208,13 +207,13 @@ export default () => {
   const transfer = async (info: any) => {
     try {
       let cap = toNano(info.cap);
-      const exRate = info.exRate; //base * 2; // 1 SOURCE = 2 SOLD
+      const exRate = info.ex_rate; //base * 2; // 1 SOURCE = 2 SOLD
       //TODO sold balance should > soldAmount
       const soldAmount = cap.mul(toNano(exRate)).div(toNano(base));
       console.log("soldAmount: ", fromNano(soldAmount));
 
       const tx = await getJettonTransferTx(
-        info.soldJetton,
+        info.sold_jetton,
         address,
         info.address,
         soldAmount,
@@ -287,9 +286,9 @@ export default () => {
         <Form.Item
           label={
             <div className="custom-form-label">
-              <span>Release Time</span>
+              <span>Start Time</span>
               <Popover
-                content={"Time to enable user claim"}
+                content={"Time to accept user stake"}
                 trigger={["hover", "click"]}
                 placement="topLeft"
               >
@@ -297,16 +296,48 @@ export default () => {
               </Popover>
             </div>
           }
-          name="releaseTime"
-          rules={[{ required: !startNow, message: "Release time is required" }]}
+          name="startTime"
+          rules={[{ required: !startNow, message: "Start time is required" }]}
         >
           <DatePicker
             showTime
-            showNow={false}
-            placeholder="Release time"
+            showNow={true}
+            placeholder="Start time"
             disabledDate={disabledDate}
             // disabledTime={disabledStartTime}
             className="common-date-picker"
+          />
+        </Form.Item>
+        <Form.Item
+          label={
+            <div className="custom-form-label">
+              <span>Duration Days</span>
+              <Popover
+                content={"Duration Days"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
+          name="duration"
+          rules={[
+            {
+              required: true,
+              message: "Please input duration days.",
+            },
+            // {
+            //   min: 1,
+            //   type: "number",
+            //   message: "Min days 1",
+            // },
+          ]}
+        >
+          <InputNumber
+            className="dao-form-input"
+            placeholder="Duration days"
+            controls={false}
           />
         </Form.Item>
         <Checkbox

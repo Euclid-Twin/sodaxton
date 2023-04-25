@@ -11,7 +11,7 @@ import {
   TonClient,
 } from "ton";
 import BN from "bn.js";
-import { OPS } from "@/utils/jetton-minter.deploy";
+import { OPS } from "@/utils/ops";
 import { LaunchPadInfo, getBindResult } from "@/api/apis";
 import { getChatAdmins } from "@/api";
 import { makeGetCall, cellToAddress } from "./lib/make-get-call";
@@ -177,18 +177,19 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
 
     const result = {
       address: launchpadAddr,
-      releaseTime: launchpadData[0].toNumber(),
-      exRate: launchpadData[1].toNumber(), // includes base
+      startTime: launchpadData[0].toNumber(),
+      duration: launchpadData[1].toNumber(),
+      exRate: launchpadData[2].toNumber(), // includes base
       sourceJetton:
-        launchpadData[2].bits.length > 2
-          ? launchpadData[2].beginParse().loadAddress().toString()
+        launchpadData[3].bits.length > 2
+          ? launchpadData[3].beginParse().loadAddress().toString()
           : null,
-      soldJetton: launchpadData[3].beginParse().loadAddress().toString(),
-      cap: Number(fromNano(launchpadData[4])),
-      received: Number(fromNano(launchpadData[5])),
+      soldJetton: launchpadData[4].beginParse().loadAddress().toString(),
+      cap: Number(fromNano(launchpadData[5])),
+      received: Number(fromNano(launchpadData[6])),
       // JETTON_WALLET_CODE: launchpadData[6],
       // timeLockCode: launchpadData[7],
-      owner: launchpadData[8].beginParse().loadAddress().toString(),
+      owner: launchpadData[9].beginParse().loadAddress().toString(),
     };
     if (result.sourceJetton) {
       result.sourceJetton = Address.parse(result.sourceJetton).toFriendly();
@@ -250,13 +251,13 @@ export async function getAccountTimeLockAddr(account: string, endTime: number) {
 }
 
 export async function getDeployTimelockTx(
-  launchpadInfo: any,
+  launchpadInfo: LaunchPadInfo,
   account: string,
   timelockAddress: string
 ) {
   let timelockCode = await readFile("/build/timelock.cell");
   let dataCell = beginCell()
-    .storeUint(launchpadInfo.releaseTime, 64)
+    .storeUint(launchpadInfo.startTime + launchpadInfo.duration, 64)
     .storeAddress(Address.parse(account))
     .endCell();
   const initCell = beginCell()
@@ -380,7 +381,7 @@ export const getPurchasedAmount = async (
 ) => {
   const accountTimeLockAddr = await getAccountTimeLockAddr(
     account,
-    launchpadInfo.releaseTime
+    launchpadInfo.startTime + launchpadInfo.duration
   );
   const timelockAddress = new TonWeb.Address(accountTimeLockAddr.toFriendly());
   const minter = await new JettonMinter(tonweb.provider, {
