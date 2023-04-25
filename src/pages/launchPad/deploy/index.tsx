@@ -309,35 +309,6 @@ export default () => {
             className="common-date-picker"
           />
         </Form.Item>
-
-        <Form.Item
-          label={
-            <div className="custom-form-label">
-              <span>Offering Jetton</span>
-              <Popover
-                content={"Jetton offering for this launchpad"}
-                trigger={["hover", "click"]}
-                placement="topLeft"
-              >
-                <QuestionCircleOutlined />
-              </Popover>
-            </div>
-          }
-          name="soldJetton"
-          rules={[
-            {
-              required: true,
-              message: "Please input offering jetton contract address.",
-            },
-            {
-              max: 64,
-              type: "string",
-              message: "Max length:64",
-            },
-          ]}
-        >
-          <Input className="dao-form-input" placeholder="Offering jetton" />
-        </Form.Item>
         <Checkbox
           checked={useSourceTon}
           onChange={(e) => {
@@ -378,6 +349,34 @@ export default () => {
             placeholder="Staked jetton"
             disabled={useSourceTon}
           />
+        </Form.Item>
+        <Form.Item
+          label={
+            <div className="custom-form-label">
+              <span>Offering Jetton</span>
+              <Popover
+                content={"Jetton offering for this launchpad"}
+                trigger={["hover", "click"]}
+                placement="topLeft"
+              >
+                <QuestionCircleOutlined />
+              </Popover>
+            </div>
+          }
+          name="soldJetton"
+          rules={[
+            {
+              required: true,
+              message: "Please input offering jetton contract address.",
+            },
+            {
+              max: 64,
+              type: "string",
+              message: "Max length:64",
+            },
+          ]}
+        >
+          <Input className="dao-form-input" placeholder="Offering jetton" />
         </Form.Item>
 
         <Form.Item

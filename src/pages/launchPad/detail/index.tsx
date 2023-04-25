@@ -475,22 +475,19 @@ export default () => {
             </span> */}
             <span className="value">
               1 {currentLaunchpad.sourceJetton ? "Staked" : "TON"} ={" "}
-              {currentLaunchpad?.exRate / ExRate_BASE} Sold
+              {currentLaunchpad?.exRate / ExRate_BASE} Offering
             </span>
           </div>
           <div className="launchpad-info-item">
             <span className="label">
-              {currentLaunchpad!.sourceJetton ? "Source" : "TON"} to stake:{" "}
+              {currentLaunchpad!.sourceJetton ? "Stake Jetton" : "TON"}
             </span>
             <span className="value">
               {(buyAmount * ExRate_BASE) / currentLaunchpad!.exRate}
             </span>
           </div>
           <div className="launchpad-info-item">
-            <span className="label">
-              {" "}
-              {currentLaunchpad!.sourceJetton ? "Source" : "TON"} Balance:
-            </span>
+            <span className="label">Balance:</span>
             <span className="value">{sourceBalance}</span>
           </div>
           <div className="form-footer-btns">
