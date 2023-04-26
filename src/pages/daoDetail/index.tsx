@@ -1,7 +1,7 @@
 import "./index.less";
 import { useState, useEffect } from "react";
 import { useParams, useModel } from "umi";
-import { getCollectionDaoByCollectionId } from "@/api";
+
 import {
   getProposalList,
   getProposalPermission,
@@ -16,6 +16,7 @@ import ProposalResults from "@/components/ProposalResults";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
 import Back from "@/components/Back";
 import axios from "axios";
+import { getCollectionDaoByCollectionId, Collection } from "@/api";
 const PAGE_SIZE = 10;
 
 export default () => {
@@ -28,6 +29,7 @@ export default () => {
   const [proposal, setProposal] = useState<Proposal>();
   const [loading, setLoading] = useState(false);
   const [chatLink, setChatLink] = useState("");
+  const [collectionDetail, setCollectionDetail] = useState<Collection>();
   const fetchDaoDetail = async (daoId: string) => {
     const collectionId = daoId;
     const collectionDao = await getCollectionDaoByCollectionId({
@@ -37,6 +39,7 @@ export default () => {
       const dao = collectionDao.dao;
       dao.image = getUrl(dao.image);
       setCurrentDao(dao);
+      setCollectionDetail(collectionDao.collection);
       return collectionDao;
     }
   };
@@ -157,6 +160,19 @@ export default () => {
         >
           LaunchPad
         </Button>
+        {collectionDetail?.enable_other_mint && (
+          <Button
+            type="default"
+            className="primary-default btn-open-chat"
+            onClick={() => {
+              history.push(
+                `/collection/mint?collection_addr=${collectionDetail?.contract}`
+              );
+            }}
+          >
+            Mint NFT
+          </Button>
+        )}
       </div>
 
       <div className="proposal-list-container">

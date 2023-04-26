@@ -30,6 +30,8 @@ export const getCollectionDaoByCollectionId = async (params: {
       id: item.id,
       name: item.name,
       image: item.img,
+      enable_other_mint: item.enable_other_mint > 0,
+      contract: item.contract,
     },
     dao: toDaoItem(dao),
   };

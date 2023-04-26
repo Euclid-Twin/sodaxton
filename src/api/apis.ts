@@ -16,6 +16,8 @@ export interface Collection {
   id: string;
   name: string;
   image?: string;
+  enable_other_mint?: boolean;
+  contract?: string;
 }
 export type Token = {
   type: AssetType;
@@ -296,6 +298,8 @@ export interface ICollectionItem {
   name: string;
   img: string;
   dao: IDaoItem;
+  enable_other_mint: 0 | 1;
+  contract: string;
 }
 export const getCollectionDaoByCollectionId = async (params: {
   id: string;

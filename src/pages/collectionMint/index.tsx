@@ -34,7 +34,7 @@ import { useTonhubConnect } from "react-ton-x";
 import { TxConfirmModal } from "../collectionCreate";
 import { WalletName } from "@/models/app";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
-import { getUrl } from "@/utils";
+import { formatAddress, getUrl } from "@/utils";
 import { request } from "umi";
 import {
   getBindResult,
@@ -55,6 +55,8 @@ export default () => {
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
   const [uploadLoading, setUploadLoading] = useState(false);
+  const { query }: any = useLocation();
+  const { collection_addr } = query;
 
   const walletDisplay = useMemo(() => {
     if (walletName === WalletName.Tonkeeper) {
@@ -244,8 +246,17 @@ export default () => {
         value: item.addr,
         label: item.name,
       }));
-
-      setCollections(list);
+      if (collection_addr) {
+        const collection = list.find(
+          (item) => formatAddress(item.value) === formatAddress(collection_addr)
+        );
+        if (collection) {
+          setCollections([collection]);
+          form.setFieldValue("collection", collection.value);
+        }
+      } else {
+        setCollections(list);
+      }
     }
   };
 
