@@ -403,19 +403,23 @@ export const getPurchasedAmount = async (
 };
 
 export const getJettonDetails = async (address: string) => {
-  const contractAddr = Address.parse(address);
-
-  const minter = await makeGetCall(
-    contractAddr,
-    "get_jetton_data",
-    [],
-    async ([totalSupply, __, adminCell, contentCell]) => ({
-      ...(await readJettonMetadata(contentCell as unknown as Cell)),
-      admin: cellToAddress(adminCell),
-      totalSupply: totalSupply as BN,
-    }),
-    tonClient
-  );
-  console.log("jetton: ", minter);
-  return minter;
+  try {
+    const contractAddr = Address.parse(address);
+    const minter = await makeGetCall(
+      contractAddr,
+      "get_jetton_data",
+      [],
+      async ([totalSupply, __, adminCell, contentCell]) => ({
+        ...(await readJettonMetadata(contentCell as unknown as Cell)),
+        admin: cellToAddress(adminCell),
+        totalSupply: totalSupply as BN,
+      }),
+      tonClient
+    );
+    console.log("jetton: ", minter);
+    return minter;
+  } catch (e) {
+    console.log(e);
+    return { metadata: {} };
+  }
 };

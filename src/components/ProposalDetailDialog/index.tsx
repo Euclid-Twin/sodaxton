@@ -8,6 +8,7 @@ import {
   Proposal,
   getUserVoteInfo,
   getProposalPermission,
+  vote as voteProposal,
 } from "@/api/proposal";
 import { ProposalStatusEnum, getUserVotePermission } from "@/api/apis";
 import { formatTimestamp, sha3 } from "@/utils";
@@ -15,7 +16,7 @@ import { formatTimestamp, sha3 } from "@/utils";
 import { useModel } from "umi";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { CHAIN_NAME } from "@/utils/constant";
-import { vote as voteProposal } from "@/api/server";
+// import { vote as voteProposal } from "@/api/server";
 interface IProps {
   show: boolean;
   detail: Proposal;

@@ -5,7 +5,7 @@ import { LaunchPadInfo, getLaunchpadInfoList } from "@/api/apis";
 import { message, Spin, Button } from "antd";
 import Back from "@/components/Back";
 import InfiniteScroll from "react-infinite-scroll-component";
-
+import { getLaunchpadInfo } from "@/utils";
 // import { PAGE_SIZE } from "@/utils/constant";
 import { isDaoAdmin, getJettonDetails } from "@/utils";
 
@@ -58,14 +58,17 @@ export default () => {
           }
           for (let i = 0; i < _list.length; i++) {
             if (metadatas[i][0] && metadatas[i][1]) {
-              _list[i].soldName =
-                metadatas[i][0].metadata.name +
-                ` (${metadatas[i][0].metadata.symbol})`;
+              _list[i].soldName = metadatas[i][0].metadata?.name
+                ? metadatas[i][0].metadata?.name +
+                  ` (${metadatas[i][0].metadata?.symbol})`
+                : "";
               _list[i].sourceName =
                 metadatas[i][1] === "TON"
                   ? "TON"
-                  : metadatas[i][1].metadata.name +
-                    ` (${metadatas[i][1].metadata.symbol})`;
+                  : metadatas[i][1].metadata?.name
+                  ? metadatas[i][1].metadata?.name +
+                    ` (${metadatas[i][1].metadata?.symbol})`
+                  : "";
             }
           }
           if (data.length > 0) {

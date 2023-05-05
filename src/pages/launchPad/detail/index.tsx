@@ -120,6 +120,7 @@ export default () => {
           currentLaunchpad.soldJetton,
           currentLaunchpad.address
         );
+        console.log("unsold: ", unsold);
         setUnsoldAmount(unsold);
       }
 
@@ -141,9 +142,9 @@ export default () => {
   useEffect(() => {
     (async () => {
       await sleep(1); //avoid exceed 10 requests per second
-      await fetchAmount();
-      await sleep(1); //avoid exceed 10 requests per second
       await fetchUnsoldAmount();
+      await sleep(1); //avoid exceed 10 requests per second
+      await fetchAmount();
     })();
   }, [currentLaunchpad, address]);
 

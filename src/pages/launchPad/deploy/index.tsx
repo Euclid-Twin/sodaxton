@@ -69,22 +69,39 @@ const createDeployLaunchPadTx = async (
     : undefined;
   const soldJetton = Address.parse(soldJettonAddr);
   const owner = Address.parse(ownerAddress);
-  let dataCell = beginCell()
-    .storeRef(
-      beginCell()
-        .storeUint(startTime, 64)
-        .storeUint(duration, 64)
-        .storeUint(exRate, 64)
-        .storeUint(cap, 64)
-        .storeUint(0, 64)
+  let dataCell = sourceJetton
+    ? beginCell()
+        .storeRef(
+          beginCell()
+            .storeUint(startTime, 64)
+            .storeUint(duration, 64)
+            .storeUint(exRate, 64)
+            .storeUint(cap, 64)
+            .storeUint(0, 64)
+            .endCell()
+        )
+        .storeAddress(sourceJetton)
+        .storeAddress(soldJetton)
+        .storeRef(JETTON_WALLET_CODE)
+        .storeRef(timelockCode)
+        .storeAddress(owner)
         .endCell()
-    )
-    .storeAddress(sourceJetton)
-    .storeAddress(soldJetton)
-    .storeRef(JETTON_WALLET_CODE)
-    .storeRef(timelockCode)
-    .storeAddress(owner)
-    .endCell();
+    : beginCell()
+        .storeRef(
+          beginCell()
+            .storeUint(startTime, 64)
+            .storeUint(duration, 64)
+            .storeUint(exRate, 64)
+            .storeUint(cap, 64)
+            .storeUint(0, 64)
+            .endCell()
+        )
+        .storeAddress(null)
+        .storeAddress(soldJetton)
+        .storeRef(JETTON_WALLET_CODE)
+        .storeRef(timelockCode)
+        .storeAddress(owner)
+        .endCell();
   let cellFile = sourceJetton ? "/build/ido.cell" : "/build/ton-ido.cell";
 
   const codeCell = await readFile(cellFile);
@@ -164,7 +181,7 @@ export default () => {
         address,
         exRate,
         values.soldJetton, //"kQAjJTzAyKOHuyTpqcLLgNdTdJcbRfmxm9kNCJvvESADq7pA",
-        useSourceTon ? "" : values.sourceJetton //"kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
+        useSourceTon ? undefined : values.sourceJetton //"kQBajc2rmhof5AR-99pfLmoUlV3Nzcle6P_Mc_KnacsViccN"
       );
       await sendTransaction(
         tx,
@@ -365,7 +382,7 @@ export default () => {
           name="sourceJetton"
           rules={[
             {
-              required: true,
+              required: useSourceTon ? false : true,
               message: "Please input staked token contract address.",
             },
             {

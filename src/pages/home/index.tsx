@@ -33,6 +33,7 @@ export default function HomePage() {
   const [tonConnectUi] = useTonConnectUI();
 
   const location: Location = useLocation();
+  // window.Telegram.WebApp.sendData(JSON.stringify({ url: window.location }));
   console.log(location.query);
   const tid = location.query?.tid as string;
   const getBind = async () => {
