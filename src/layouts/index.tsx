@@ -92,8 +92,10 @@ export default (props: any) => {
               setConnectionState(s as RemoteConnectPersistance);
             }}
           >
-            <div className="layout">{props.children}</div>
-            <_TonConnecterInternal />
+            <div className="layout">
+              {props.children}
+              {!address && <_TonConnecterInternal />}
+            </div>
           </TonhubConnectProvider>
         </QueryClientProvider>
       </TonConnectUIProvider>
@@ -139,7 +141,7 @@ function _TonConnecterInternal(props: any) {
     <>
       {!address && (
         <div className="connect-container">
-          <h1 className="title">Welcome to Soton</h1>
+          <img src="/img-welcome.png" alt="" className="img-welcome" />
           <div className="connect-btns">
             <Button
               type="primary"

@@ -181,7 +181,7 @@ export const getLaunchpadInfo = async (launchpadAddr: string) => {
       duration: launchpadData[1].toNumber(),
       exRate: launchpadData[2].toNumber(), // includes base
       sourceJetton:
-        launchpadData[3].bits.length > 2
+        launchpadData[3].bits.length > 200
           ? launchpadData[3].beginParse().loadAddress().toString()
           : null,
       soldJetton: launchpadData[4].beginParse().loadAddress().toString(),

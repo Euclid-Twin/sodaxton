@@ -7,7 +7,12 @@ import Back from "@/components/Back";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { getLaunchpadInfo } from "@/utils";
 // import { PAGE_SIZE } from "@/utils/constant";
-import { isDaoAdmin, getJettonDetails } from "@/utils";
+import {
+  isDaoAdmin,
+  getJettonDetails,
+  fallbackCopyTextToClipboard,
+  formatAddress,
+} from "@/utils";
 
 const PageSize = 5;
 interface LaunchItem extends LaunchPadInfo {
@@ -136,14 +141,16 @@ export default () => {
       >
         {list.map((item) => (
           <li>
-            <div
-              className="dao-item"
-              onClick={() => {
-                setCurrentLaunchpad(item);
-                history.push(`/launchpad/detail`);
-              }}
-            >
-              <div className="launchpad-list-item">
+            <div className="list-item">
+              <div
+                className="launchpad-list-item"
+                onClick={() => {
+                  fallbackCopyTextToClipboard(
+                    formatAddress(item.address),
+                    "Launchpad contract address copied!"
+                  );
+                }}
+              >
                 <p>
                   Offering:{" "}
                   <span className="launchpad-list-addr">
@@ -159,12 +166,19 @@ export default () => {
                   </span>
                 </p>
               </div>
-
-              <img
-                src="/icon-detail-arrow.svg"
-                alt=""
-                className="detail-arrow"
-              />
+              <div
+                className="launchpad-link"
+                onClick={() => {
+                  setCurrentLaunchpad(item);
+                  history.push(`/launchpad/detail`);
+                }}
+              >
+                <img
+                  src="/icon-detail-arrow.svg"
+                  alt=""
+                  className="detail-arrow"
+                />
+              </div>
             </div>
           </li>
         ))}

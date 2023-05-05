@@ -21,7 +21,7 @@ export default () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [listSwitch, setListSwitch] = useState<ListSwitchEnum>(
-    ListSwitchEnum.All_List
+    ListSwitchEnum.My_List
   );
   const fetchDaos = async (_name?: string) => {
     try {
@@ -77,7 +77,7 @@ export default () => {
   return (
     <div className="page-container daos-container">
       <Back />
-      <h1 className="page-title">DAOs</h1>
+      <h1 className="page-title">DAOs & Tokens</h1>
       <div className="page-header">
         <Search
           className="dao-list-search-input"
@@ -94,20 +94,20 @@ export default () => {
         <div className="list-switch">
           <span
             className={
-              listSwitch === ListSwitchEnum.All_List ? "switch-active" : ""
-            }
-            onClick={() => handleListSwitch(ListSwitchEnum.All_List)}
-          >
-            DAO list
-          </span>
-          <i>/</i>
-          <span
-            className={
               listSwitch === ListSwitchEnum.My_List ? "switch-active" : ""
             }
             onClick={() => handleListSwitch(ListSwitchEnum.My_List)}
           >
-            View my DAO
+            My DAOs
+          </span>
+          <i>/</i>
+          <span
+            className={
+              listSwitch === ListSwitchEnum.All_List ? "switch-active" : ""
+            }
+            onClick={() => handleListSwitch(ListSwitchEnum.All_List)}
+          >
+            Explore DAOs
           </span>
         </div>
       </div>

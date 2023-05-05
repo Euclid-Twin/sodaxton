@@ -77,6 +77,12 @@ export default () => {
     }
   }, [currentLaunchpad]);
 
+  const getLaunchpadState = async () => {
+    const info = await getLaunchpadInfo(currentLaunchpad.address);
+    console.log("info: ", info);
+    setLaunchpadSourceBalance(info?.received || 0);
+  };
+
   const durationPassed = useMemo(() => {
     if (currentLaunchpad) {
       return (
@@ -124,18 +130,18 @@ export default () => {
         setUnsoldAmount(unsold);
       }
 
-      if (currentLaunchpad.sourceJetton) {
-        const balance = await getJettonBalance(
-          currentLaunchpad.sourceJetton,
-          currentLaunchpad.address
-        );
-        setLaunchpadSourceBalance(balance);
-      } else {
-        const balance = await tonClient.getBalance(
-          Address.parse(currentLaunchpad.address)
-        );
-        setLaunchpadSourceBalance(Number(fromNano(balance)));
-      }
+      // if (currentLaunchpad.sourceJetton) {
+      //   const balance = await getJettonBalance(
+      //     currentLaunchpad.sourceJetton,
+      //     currentLaunchpad.address
+      //   );
+      //   setLaunchpadSourceBalance(balance);
+      // } else {
+      //   const balance = await tonClient.getBalance(
+      //     Address.parse(currentLaunchpad.address)
+      //   );
+      //   setLaunchpadSourceBalance(Number(fromNano(balance)));
+      // }
     }
   };
 
@@ -188,9 +194,9 @@ export default () => {
     })();
   }, [currentLaunchpad]);
 
-  // useEffect(() => {
-  //   fetchLaunchpadState();
-  // }, [currentLaunchpad]);
+  useEffect(() => {
+    getLaunchpadState();
+  }, [currentLaunchpad]);
 
   const handleBuy = () => {
     setFormShow(true);

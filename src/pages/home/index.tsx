@@ -221,72 +221,6 @@ export default function HomePage() {
       }
       message.success(`Your TON address is unbound.`);
       getBind(); //refresh page
-
-      // if (walletName === WalletName.Tonkeeper) {
-      //   const res = await unbind({
-      //     addr: address,
-      //     tid: tid!,
-      //   });
-      //   if (res) {
-      //     message.success(`Your TON address is unbound.`);
-      //     getBind(); //refresh page
-      //   } else {
-      //     message.error("Unbind failed.");
-      //   }
-      // } else {
-      //   signConfirm();
-      //   const platform = PLATFORM;
-      //   const payloadToSign = Buffer.concat([
-      //     Buffer.from([0, 0, 0, 0]),
-      //     Buffer.from(platform + tid),
-      //   ]);
-      //   const payload = beginCell()
-      //     .storeBuffer(payloadToSign)
-      //     .endCell()
-      //     .toBoc({ idx: false })
-      //     .toString("base64");
-      //   const text = "Unbind your address with Telegram";
-      //   // Request body
-      //   const request = {
-      //     //@ts-ignore
-      //     seed: connect.state.seed, // Session Seed
-      //     //@ts-ignore
-      //     appPublicKey: connect.state.walletConfig.appPublicKey, // Wallet's app public key
-      //     timeout: 5 * 60 * 1000, // 5 minut timeout
-      //     text: text, // Text to sign, presented to the user.
-      //     payload: payload, // Optional serialized to base64 string payload cell
-      //   };
-      //   const response = await connect.api.requestSign(request);
-      //   if (response.type === "rejected") {
-      //     // Handle rejection
-      //     message.warn("Transaction rejected");
-      //   } else if (response.type === "expired") {
-      //     // Handle expiration
-      //     message.warn("Transaction expired");
-      //   } else if (response.type === "invalid_session") {
-      //     // Handle expired or invalid session
-      //     message.warn(
-      //       "Session or transaction expired. Please re-login and tray again."
-      //     );
-      //   } else if (response.type === "success") {
-      //     // Handle successful transaction
-      //     const sig = response.signature;
-      //     const res = await unbind({
-      //       addr: address,
-      //       tid: tid!,
-      //       sig,
-      //       pubkey: getPk(connect.state.walletConfig.walletConfig),
-      //     });
-      //     if (res) {
-      //       message.success(`Your TON address is unbound.`);
-      //       getBind(); //refresh page
-      //     } else {
-      //       message.error("Unbind failed.");
-      //     }
-      //   } else {
-      //     throw new Error("Impossible");
-      //   }
-      // }
       setUnbindLoading(false);
     } catch (e) {
       message.error("Unbind failed.");
@@ -317,7 +251,8 @@ export default function HomePage() {
     <div className="home-container">
       {address && (
         <div className="home-content">
-          <h1 className="page-title home-title">Welcome to Soton</h1>
+          {/* <h1 className="page-title home-title">Welcome to Soton</h1> */}
+          <img src="/img-welcome.png" alt="" className="img-welcome" />
 
           <p className="text-tip">Your address: </p>
           <div className="address-display">
@@ -355,7 +290,7 @@ export default function HomePage() {
                 className="primary-btn bind-btn"
                 onClick={() => history.push("/daos")}
               >
-                View DAOs
+                DAOs & Tokens
               </Button>
             )}
             {loaded && hasCurrentBind && (
@@ -364,27 +299,17 @@ export default function HomePage() {
                 className="primary-btn bind-btn"
                 onClick={() => history.push("/collections")}
               >
-                Collections
+                NFT Collections
               </Button>
             )}
+            <Button className="default-btn logout-btn" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
         </div>
       )}
       {/* <CollectionTx /> */}
-      {address && (
-        <div
-          style={{
-            marginTop: "20px",
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <Button className="default-btn logout-btn" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
-      )}
+
       {/* <TonWalletConnect /> */}
     </div>
   );

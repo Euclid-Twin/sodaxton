@@ -6,8 +6,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 90px;
+  .home-content {
+    width: 100%;
+    padding-top: 90px;
+    height: 100vh;
+    background-color: #f8f9ff;
+    background-image: url(/img-welcome-bg.png);
+    background-size: contain;
+    box-shadow: 8px 8px 20px rgba(137, 137, 137, 0.25);
+    background-repeat: no-repeat;
+    background-position: top center;
+  }
+
   .text-tip {
+    margin-top: 133px;
     font-family: "Poppins";
     font-style: normal;
     font-weight: 400;
@@ -21,7 +33,7 @@
 
     mix-blend-mode: normal;
     opacity: 0.6;
-    margin-top: 8px;
+
     margin-bottom: 13px;
   }
   .address-display {
@@ -51,11 +63,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 80px;
+    margin-top: 20px;
+    > button:first-of-type {
+      background: #ffffff;
+    }
     .bind-btn {
       width: 273px;
       margin-bottom: 16px;
-      height: 50px;
+      height: 40px;
+    }
+    .logout-btn {
+      background: #ffffff;
     }
   }
   .navs {
