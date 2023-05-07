@@ -20,6 +20,8 @@ export default () => {
   const [name, setName] = useState("");
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const [listSwitch, setListSwitch] = useState<ListSwitchEnum>(
     ListSwitchEnum.My_List
   );
@@ -71,6 +73,27 @@ export default () => {
       page.current = 1;
     }
   };
+  const handleSearch = () => {
+    page.current = 1;
+    setName(searchInput);
+    setDaos([]);
+    if (searchInput === name) {
+      fetchDaos(searchInput);
+    }
+  };
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if (e.key === "Enter") {
+        if (document.activeElement === inputRef?.current?.input) {
+          handleSearch();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }, []);
   useEffect(() => {
     fetchDaos();
   }, [address, listSwitch, name]);
@@ -79,17 +102,13 @@ export default () => {
       <Back />
       <h1 className="page-title">DAOs & Tokens</h1>
       <div className="page-header">
-        <Search
+        <img src="/icon-search.png" alt="" className="icon-search" />
+        <Input
           className="dao-list-search-input"
           placeholder="Search..."
-          onSearch={(value) => {
-            page.current = 1;
-            setName(value);
-            setDaos([]);
-            if (value === name) {
-              fetchDaos(value);
-            }
-          }}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          ref={inputRef}
         />
         <div className="list-switch">
           <span
@@ -120,11 +139,11 @@ export default () => {
           // scrollableTarget={id}
           height={500}
           className="dao-list"
-          endMessage={
-            <p style={{ textAlign: "center" }}>
-              <b>Yay! You have seen it all</b>
-            </p>
-          }
+          // endMessage={
+          //   <p style={{ textAlign: "center" }}>
+          //     <b>Yay! You have seen it all</b>
+          //   </p>
+          // }
         >
           {daos.map((item) => (
             <li>

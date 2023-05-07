@@ -301,7 +301,7 @@ export default () => {
 
   return (
     <div className="page-container new-collection-container">
-      <h1 className="page-title">Mint NFT</h1>
+      <h1 className="page-title">Mint NFT in a Pre-existing Collection</h1>
       <Back />
       <Form
         form={form}
@@ -314,7 +314,7 @@ export default () => {
       >
         <div className="form-left-content">
           <Form.Item
-            label="Name*"
+            label="Display Name*"
             name="name"
             rules={[
               {

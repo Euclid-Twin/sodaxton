@@ -95,6 +95,7 @@ export default () => {
       request(url, {
         method: "POST",
         data: msg2,
+        errorHandler: () => {},
       }).then((res2) => {
         console.log("sendToChat: ", res2);
       });

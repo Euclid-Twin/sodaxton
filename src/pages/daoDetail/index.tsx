@@ -119,6 +119,7 @@ export default () => {
 
   return (
     <div className="page-container dao-detail-container">
+      <div className="upper-bg"></div>
       <Back />
       <h1 className="page-title">Dao detail</h1>
       <div className="dao-detail-header">
@@ -127,7 +128,7 @@ export default () => {
           <div className="dao-detail-info">
             <p className="dao-name">{currentDao?.name}</p>
             <p className="dao-info-item">
-              <span className="label">Create date</span>
+              <span className="label">Creation date</span>
               <span className="value">
                 {formatTimestamp(currentDao?.startDate)}
               </span>
@@ -137,9 +138,8 @@ export default () => {
       </div>
 
       <div className="launchpad-container">
-        <Button
-          type="default"
-          className="primary-default btn-open-chat"
+        <div
+          className="link-item"
           onClick={() => {
             if (chatLink) {
               window.open(chatLink);
@@ -148,30 +148,30 @@ export default () => {
             }
           }}
         >
-          <img width={14} src="/icon-tg.png" alt="" />
-          Open Chat
-        </Button>
-        <Button
-          type="default"
-          className="primary-default btn-open-chat"
+          <img src="/icon-tg.png" alt="" />
+          <span>Open Chat</span>
+        </div>
+        <div
+          className="link-item"
           onClick={() => {
             history.push("/launchpads");
           }}
         >
-          LaunchPad
-        </Button>
+          <img src="/icon-launch-token.png" alt="" />
+          <span>Token Launch</span>
+        </div>
         {collectionDetail?.enable_other_mint && (
-          <Button
-            type="default"
-            className="primary-default btn-open-chat"
+          <div
+            className="link-item"
             onClick={() => {
               history.push(
                 `/collection/mint?collection_addr=${collectionDetail?.contract}`
               );
             }}
           >
-            Mint NFT
-          </Button>
+            <img src="/icon-mint.png" alt="" />
+            <span>Mint NFT</span>
+          </div>
         )}
       </div>
 

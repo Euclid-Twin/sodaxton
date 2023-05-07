@@ -110,7 +110,7 @@ export default () => {
   return (
     <div className="page-container launchpad-list-container">
       <Back />
-      <h1 className="page-title">LaunchPad - List</h1>
+      <h1 className="page-title">DAO Token Launchpad</h1>
       <div className="launchpad-btns-container">
         {isAdmin && (
           <Button
@@ -120,10 +120,25 @@ export default () => {
               history.push("/launchpad/deploy");
             }}
           >
-            Deploy a LaunchPad
+            Launch Token
           </Button>
         )}
       </div>
+
+      {list.length === 0 && (
+        <div className="launchpad-list-empty">
+          <img src="/img-launch-empty.png" alt="" />
+          <Button
+            type="primary"
+            className="primary-btn btn-deploy-launchpad"
+            onClick={() => {
+              history.push("/launchpad/deploy");
+            }}
+          >
+            Launch Token
+          </Button>
+        </div>
+      )}
 
       <InfiniteScroll
         dataLength={list.length}
@@ -133,11 +148,11 @@ export default () => {
         // scrollableTarget={id}
         height={500}
         className="dao-list"
-        endMessage={
-          <p className="list-end-text">
-            <b>Yay! You have seen it all</b>
-          </p>
-        }
+        // endMessage={
+        //   <p className="list-end-text">
+        //     <b>Yay! You have seen it all</b>
+        //   </p>
+        // }
       >
         {list.map((item) => (
           <li>

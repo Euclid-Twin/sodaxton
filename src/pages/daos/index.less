@@ -17,7 +17,6 @@
     position: relative;
     background: #ffffff;
     /* ✨ Styles/Card shadow 2 */
-
     box-shadow: 0px 4px 10px rgba(56, 68, 251, 0.08);
     border-radius: 12px;
     cursor: pointer;
@@ -56,13 +55,25 @@
 .list-loading {
   margin-top: 80px;
 }
-
+.page-header {
+  position: relative;
+  .icon-search {
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    width: 20px;
+    height: 20px;
+    z-index: 100;
+  }
+}
 .dao-list-search-input {
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #8f92a1;
+  border-radius: 15px;
   flex: 1;
-  height: 40px;
+  height: 52px;
   margin-right: 30px;
+  padding-left: 44px;
   .ant-input-group {
     height: 100%;
   }

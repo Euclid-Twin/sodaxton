@@ -12,7 +12,12 @@ export const BACKEND_HOST = API_HOST;
 
 export const SUCCESS_CODE = 0;
 
-export async function httpRequest(req: any) {
+export async function httpRequest(req: {
+  url: string;
+  params?: any;
+  type?: HttpRequestType;
+  requestType?: any;
+}) {
   const response: any = {};
   const { url, params, type, requestType } = req;
 

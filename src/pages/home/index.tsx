@@ -287,7 +287,7 @@ export default function HomePage() {
             {loaded && hasCurrentBind && (
               <Button
                 type="primary"
-                className="primary-btn bind-btn"
+                className="primary-btn action-btn"
                 onClick={() => history.push("/daos")}
               >
                 DAOs & Tokens
@@ -296,12 +296,21 @@ export default function HomePage() {
             {loaded && hasCurrentBind && (
               <Button
                 type="primary"
-                className="primary-btn bind-btn"
+                className="primary-btn action-btn"
                 onClick={() => history.push("/collections")}
               >
                 NFT Collections
               </Button>
             )}
+            {/* {loaded && hasCurrentBind && (
+              <Button
+                type="primary"
+                className="primary-btn action-btn"
+                onClick={() => history.push("/campaign")}
+              >
+                IDO Campaign
+              </Button>
+            )} */}
             <Button className="default-btn logout-btn" onClick={handleLogout}>
               Logout
             </Button>

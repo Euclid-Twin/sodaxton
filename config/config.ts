@@ -89,6 +89,14 @@ export default defineConfig({
           path: "/launchpad/detail",
           component: "@/pages/launchPad/detail",
         },
+        {
+          path: "/campaign/list",
+          component: "@/pages/campaign/list",
+        },
+        {
+          path: "/campaign/detail",
+          component: "@/pages/campaign/detail",
+        },
       ],
     },
   ],

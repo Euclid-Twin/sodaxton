@@ -291,3 +291,65 @@ export const createNewStickerSet = async (
     url,
   });
 };
+
+export interface ICampaign {
+  campaign_id: number;
+  title: string;
+  description: string;
+  image_url: string;
+  rewards: string;
+  rewards_url: string;
+}
+
+export const getCampaignList = async (
+  collectionId: number | string,
+  page: number,
+  gap: number
+) => {
+  const url = `${API_HOST}/ton/campaigns`;
+  const params = {
+    collection_id: collectionId,
+    is_mainnet: CHAIN_NAME === "TONmain",
+    page: page,
+    gap: gap,
+  };
+  const res = await httpRequest({ url, params, type: HttpRequestType.GET });
+  return res.data as { total: number; data: ICampaign[] };
+};
+
+export enum CampaignTaskType {
+  OpenTgGroup = 1,
+  OpenDao = 2,
+  JoinTgGroup = 3,
+}
+export interface ICampaignTask {
+  task_id: number;
+  task: string;
+  task_type: CampaignTaskType;
+  target: string;
+  score: number;
+  completed?: boolean;
+}
+export const getCampaignTaskList = async (
+  campaign_id: number,
+  page?: number,
+  gap?: number
+) => {
+  const url = `${API_HOST}/ton/campaign/tasks`;
+  const params = {
+    campaign_id,
+    page,
+    gap,
+  };
+  const res = await httpRequest({ url, params, type: HttpRequestType.GET });
+  return res.data as { total: number; data: ICampaignTask[] };
+};
+
+export const saveCompletedTask = async (params: {
+  address: string;
+  campaign_id: number | string;
+  task_id: number;
+}) => {
+  const url = `${API_HOST}/ton/campaign/complete-task`;
+  return httpRequest({ url, params, type: HttpRequestType.POST });
+};

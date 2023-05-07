@@ -62,7 +62,7 @@ export default () => {
   return (
     <div className="page-container collections-container">
       <Back />
-      <h1 className="page-title">Collections</h1>
+      <h1 className="page-title">NFT Collections</h1>
       <div className="list-header">
         <div className="list-header-btns">
           <Button
@@ -111,11 +111,11 @@ export default () => {
           // scrollableTarget={id}
           height={500}
           className="collection-list"
-          endMessage={
-            <p style={{ textAlign: "center" }}>
-              <b>Yay! You have seen it all</b>
-            </p>
-          }
+          // endMessage={
+          //   <p style={{ textAlign: "center" }}>
+          //     <b>Yay! You have seen it all</b>
+          //   </p>
+          // }
         >
           {collections.map((item) => (
             <li>

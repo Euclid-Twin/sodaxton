@@ -352,7 +352,7 @@ export default () => {
 
   return (
     <div className="page-container new-proposal-container">
-      <h1 className="page-title">LaunchPad - Info</h1>
+      <h1 className="page-title">Token Launch Offering Details</h1>
       <Back />
       <div className="launchpad-info">
         <div className="launchpad-info-item">

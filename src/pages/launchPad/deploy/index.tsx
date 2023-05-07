@@ -262,7 +262,7 @@ export default () => {
 
   return (
     <div className="page-container new-deploy-container">
-      <h1 className="page-title">LaunchPad - Deploy</h1>
+      <h1 className="page-title">Token Launch Offering Setup</h1>
       <Back />
       <Form
         form={form}
@@ -275,7 +275,7 @@ export default () => {
         <Form.Item
           label={
             <div className="custom-form-label">
-              <span>Capacity</span>
+              <span>Total number of tokens</span>
               <Popover
                 content={"Total Staked Jetton To Accept"}
                 trigger={["hover", "click"]}
@@ -369,7 +369,7 @@ export default () => {
         <Form.Item
           label={
             <div className="custom-form-label">
-              <span>Staked Jetton</span>
+              <span>Target Staked Token Address</span>
               <Popover
                 content={"Paid Jetton"}
                 trigger={["hover", "click"]}
@@ -401,9 +401,9 @@ export default () => {
         <Form.Item
           label={
             <div className="custom-form-label">
-              <span>Offering Jetton</span>
+              <span>New Token Address</span>
               <Popover
-                content={"Jetton offering for this launchpad"}
+                content={"Token offering for this launchpad"}
                 trigger={["hover", "click"]}
                 placement="topLeft"
               >
@@ -415,7 +415,7 @@ export default () => {
           rules={[
             {
               required: true,
-              message: "Please input offering jetton contract address.",
+              message: "Please input offering token contract address.",
             },
             {
               max: 64,
@@ -424,11 +424,11 @@ export default () => {
             },
           ]}
         >
-          <Input className="dao-form-input" placeholder="Offering jetton" />
+          <Input className="dao-form-input" placeholder="New Token Address" />
         </Form.Item>
 
         <Form.Item
-          label="Exchange Rate"
+          label="Exchange Rate(Staked Token x New Token)"
           name="rate"
           rules={[
             {
