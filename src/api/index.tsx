@@ -292,6 +292,11 @@ export const createNewStickerSet = async (
   });
 };
 
+export enum CampaignStatus {
+  "NotStarted" = "Not Started",
+  "Started" = "Campaign Started",
+  "Ended" = "Campaign Ended",
+}
 export interface ICampaign {
   campaign_id: number;
   title: string;
@@ -299,6 +304,9 @@ export interface ICampaign {
   image_url: string;
   rewards: string;
   rewards_url: string;
+  start_time: number;
+  end_time: number;
+  status: CampaignStatus;
 }
 
 export const getCampaignList = async (
@@ -307,14 +315,27 @@ export const getCampaignList = async (
   gap: number
 ) => {
   const url = `${API_HOST}/ton/campaigns`;
-  const params = {
+  const params: any = {
     collection_id: collectionId,
-    is_mainnet: CHAIN_NAME === "TONmain",
     page: page,
     gap: gap,
   };
+  if (CHAIN_NAME === "TONmain") {
+    params.is_mainnet = true;
+  }
   const res = await httpRequest({ url, params, type: HttpRequestType.GET });
-  return res.data as { total: number; data: ICampaign[] };
+  const { total, data } = res.data;
+  const now = Date.now();
+  for (const item of data) {
+    if (now < item.start_time) {
+      item.status = CampaignStatus.NotStarted;
+    } else if (item.start_time < now && now < item.end_time) {
+      item.status = CampaignStatus.Started;
+    } else if (item.end_time < now) {
+      item.status = CampaignStatus.Ended;
+    }
+  }
+  return { total, data } as { total: number; data: ICampaign[] };
 };
 
 export enum CampaignTaskType {
@@ -328,16 +349,18 @@ export interface ICampaignTask {
   task_type: CampaignTaskType;
   target: string;
   score: number;
-  completed?: boolean;
+  completed_by_addr: boolean;
 }
 export const getCampaignTaskList = async (
   campaign_id: number,
+  address: string,
   page?: number,
   gap?: number
 ) => {
   const url = `${API_HOST}/ton/campaign/tasks`;
   const params = {
     campaign_id,
+    address,
     page,
     gap,
   };

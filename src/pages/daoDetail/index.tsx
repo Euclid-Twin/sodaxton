@@ -17,6 +17,7 @@ import ProposalDetailDialog from "@/components/ProposalDetailDialog";
 import Back from "@/components/Back";
 import axios from "axios";
 import { getCollectionDaoByCollectionId, Collection } from "@/api";
+import { UnorderedListOutlined } from "@ant-design/icons";
 const PAGE_SIZE = 10;
 
 export default () => {
@@ -173,6 +174,19 @@ export default () => {
             <span>Mint NFT</span>
           </div>
         )}
+        <div
+          className="link-item"
+          onClick={() => {
+            history.push("/campaign/list");
+          }}
+        >
+          <UnorderedListOutlined
+            width={40}
+            height={40}
+            style={{ fontSize: "40px", marginBottom: "6px" }}
+          />
+          <span>IDO Campaign</span>
+        </div>
       </div>
 
       <div className="proposal-list-container">

@@ -276,8 +276,8 @@ export default function HomePage() {
             )}
             {((loaded && hasCurrentBind) || (loaded && hasOtherAddrBind)) && (
               <Button
-                type="primary"
-                className="default-btn bind-btn"
+                type="default"
+                className="default-btn bind-btn unbind-btn"
                 onClick={handleUnbind}
                 loading={unbindLoading}
               >
