@@ -117,6 +117,7 @@ export default () => {
           method: "POST",
           data: formData,
           requestType: "form",
+          errorHandler: () => {},
         });
         console.log("sendToChat: ", res);
         if (res.ok && res.result) {

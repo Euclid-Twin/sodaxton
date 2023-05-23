@@ -37,6 +37,10 @@ const VoterBallotOptions = [
     value: 2,
     label: "1 ballot per NFT",
   },
+  {
+    value: 6,
+    label: "1 ballot per Address",
+  },
   // {
   //   value: 3,
   //   label: '1 ballot per SON',
@@ -74,6 +78,7 @@ export default () => {
       const res = await request(url, {
         method: "POST",
         data: msg,
+        errorHandler: () => {},
       });
       console.log("sendToChat: ", res);
       const countdowns = getCountdownTime(proposal.startTime);

@@ -55,15 +55,16 @@ export default () => {
         // }
       >
         {list.map((item) => (
-          <div
-            className="campaign-item"
-            onClick={() => {
-              setCurrentCampaign(item);
-              setModalVisible(true);
-            }}
-          >
+          <div className="campaign-item">
             <div className="status">{item.status}</div>
-            <img src={item.image_url} alt="" />
+            <img
+              src={item.image_url}
+              alt=""
+              onClick={() => {
+                setCurrentCampaign(item);
+                setModalVisible(true);
+              }}
+            />
             <div className="info">
               <p className="title">{item.title}</p>
               <p className="desc">{item.description}</p>

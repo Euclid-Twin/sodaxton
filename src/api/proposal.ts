@@ -105,8 +105,10 @@ export const vote = async (params: {
   item: string;
   sig: string;
   chain_name: string;
+  comment?: string;
 }) => {
-  const { voter, collectionId, proposalId, item, sig, chain_name } = params;
+  const { voter, collectionId, proposalId, item, sig, chain_name, comment } =
+    params;
   return await Api.vote({
     voter,
     collection_id: collectionId,
@@ -114,6 +116,7 @@ export const vote = async (params: {
     item,
     sig,
     chain_name,
+    comment,
   });
 };
 export const getUserVoteInfo = async (params: {
