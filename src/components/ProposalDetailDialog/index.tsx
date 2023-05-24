@@ -39,7 +39,7 @@ interface IProps {
   inDao?: boolean;
   noVote?: boolean;
 }
-const MaxCommentLength = 200;
+const MaxCommentLength = 400;
 export default (props: IProps) => {
   const { show, detail, onClose, inDao, noVote } = props;
   const [vote, setVote] = useState<string>();
@@ -74,7 +74,7 @@ export default (props: IProps) => {
     const value = e.target.value;
     setComment(value);
     if (value && value.length > MaxCommentLength) {
-      setCommentError("No more than 200 characters");
+      setCommentError(`No more than ${MaxCommentLength} characters`);
     } else {
       setCommentError("");
     }
@@ -219,7 +219,9 @@ export default (props: IProps) => {
                   <div className="comment">
                     <Checkbox
                       checked={submitComment}
-                      onChange={handleCommentChange}
+                      onChange={(e) => {
+                        setSubmitComment(e.target.checked);
+                      }}
                       className="proposal-start-now"
                     >
                       Submit Comment
@@ -227,7 +229,7 @@ export default (props: IProps) => {
                     {submitComment && (
                       <TextArea
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
+                        onChange={handleCommentChange}
                         placeholder="Comment"
                       />
                     )}
