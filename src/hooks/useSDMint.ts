@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { dequeue } from "@/api";
+import { dequeue, getChatLink } from "@/api";
 import { history, useLocation, useModel } from "umi";
 import {
   uploadFile,
@@ -50,12 +50,58 @@ export default (gid: number | string, uid: number | string) => {
     console.log("sendToChat: ", res);
   };
 
+  const updateMintButtonMarkup = async (
+    type: "success" | "fail",
+    detail: any
+  ) => {
+    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/editMessageReplyMarkup`;
+
+    let reply_markup;
+    if (type === "success") {
+      const daoId = detail.daoId;
+      const groupLink = await getChatLink(daoId);
+      reply_markup = {
+        inline_keyboard: [
+          [
+            {
+              text: "View Group",
+              url: groupLink,
+            },
+          ],
+        ],
+      };
+    } else {
+      reply_markup = {
+        inline_keyboard: [
+          [
+            {
+              text: "Mint",
+              callback_data: "mint_prompt",
+            },
+          ],
+        ],
+      };
+    }
+    const data = {
+      chat_id: detail.gid,
+      message_id: detail.message_id,
+      reply_markup,
+    };
+    const res = await request(url, {
+      method: "POST",
+      data: data,
+      requestType: "form",
+      errorHandler: () => {},
+    });
+  };
+
   const handleDequeue = async () => {
+    let detail;
     try {
       const res = await dequeue(gid, uid);
       if (res && res.data && res.data.length > 0) {
         const data = res.data;
-        const detail = JSON.parse(data);
+        detail = JSON.parse(data);
         const params = {
           owner: address,
           collection: {
@@ -89,19 +135,22 @@ export default (gid: number | string, uid: number | string) => {
           if (response.type === "rejected") {
             // Handle rejection
             message.warn("Transaction rejected.");
+            throw new Error("Rejected");
           } else if (response.type === "expired") {
             // Handle expiration
             message.warn("Transaction expired. Please try again.");
+            throw new Error("Expired");
           } else if (response.type === "invalid_session") {
             // Handle expired or invalid session
             message.warn(
               "Transaction or session expired. Please re-login and try again."
             );
+            throw new Error("Invalid session");
           } else if (response.type === "success") {
             // Handle successful transaction
             message.success("Mint NFT successfully.");
-            Modal.destroyAll();
-            sendToChat(detail);
+            // sendToChat(detail);
+            updateMintButtonMarkup("success", detail);
           } else {
             throw new Error("Impossible");
           }
@@ -121,13 +170,19 @@ export default (gid: number | string, uid: number | string) => {
           const resp = await tonConnectUi.connector.sendTransaction(_tx);
           console.log("tonkeeper resp: ", resp);
           message.success("Mint NFT successfully.");
-          Modal.destroyAll();
-          sendToChat(detail);
+
+          //   sendToChat(detail);
+          updateMintButtonMarkup("success", detail);
         }
       }
     } catch (e) {
       console.log(e);
-      message.error("Mint NFT failed.");
+      message.warning("Mint NFT failed.");
+      if (detail) {
+        updateMintButtonMarkup("fail", detail);
+      }
+    } finally {
+      Modal.destroyAll();
     }
   };
 

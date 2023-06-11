@@ -386,3 +386,22 @@ export const dequeue = async (gid: number, uid: number) => {
   const url = `${API_HOST}/dequeue`;
   return httpRequest({ url, params, type: HttpRequestType.POST });
 };
+
+export const getChatLink = async (chatId: number | string) => {
+  try {
+    const accessToken = process.env.BOT_TOKEN;
+    const url = `https://api.telegram.org/bot${accessToken}/getChat?chat_id=${chatId}`;
+    const { data } = await httpRequest({ url, type: HttpRequestType.GET });
+    console.log("chat: ", data);
+    if (data && data.result) {
+      const res = data.result;
+      if (res.invite_link) {
+        return res.invite_link;
+      } else if (res.username) {
+        return `https://t.me/${res.username}`;
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};

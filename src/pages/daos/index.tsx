@@ -75,6 +75,7 @@ export default () => {
   };
   const handleSearch = () => {
     page.current = 1;
+    console.log("searchInput: ", searchInput);
     setName(searchInput);
     setDaos([]);
     if (searchInput === name) {
@@ -85,7 +86,9 @@ export default () => {
     const handleKeydown = (e) => {
       if (e.key === "Enter") {
         if (document.activeElement === inputRef?.current?.input) {
-          handleSearch();
+          setTimeout(() => {
+            handleSearch();
+          }, 100);
         }
       }
     };
