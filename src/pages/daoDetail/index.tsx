@@ -56,6 +56,8 @@ export default () => {
         const res = data.result;
         if (res.invite_link) {
           setChatLink(res.invite_link);
+        } else if (res.username) {
+          setChatLink(`https://t.me/${res.username}`);
         }
       }
     } catch (e) {

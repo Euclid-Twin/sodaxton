@@ -376,3 +376,13 @@ export const saveCompletedTask = async (params: {
   const url = `${API_HOST}/ton/campaign/complete-task`;
   return httpRequest({ url, params, type: HttpRequestType.POST });
 };
+
+export const dequeue = async (gid: number, uid: number) => {
+  const params = {
+    gid,
+    uid,
+    count: 1,
+  };
+  const url = `${API_HOST}/dequeue`;
+  return httpRequest({ url, params, type: HttpRequestType.POST });
+};

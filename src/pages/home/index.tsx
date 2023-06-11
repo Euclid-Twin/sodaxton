@@ -16,8 +16,11 @@ import IconCopy from "@/assets/images/copy.svg";
 import { fallbackCopyTextToClipboard } from "@/utils";
 import CollectionTx from "@/components/Transactoin";
 import { PLATFORM } from "@/utils/constant";
-import { bind1WithWeb3Proof, unbind } from "@/api";
+import { bind1WithWeb3Proof, unbind, dequeue } from "@/api";
 import { WalletName } from "@/models/app";
+
+import useSDMint from "@/hooks/useSDMint";
+
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
   const { address, setAddress, walletName } = useModel("app");
@@ -28,7 +31,6 @@ export default function HomePage() {
   const [hasOtherAddrBind, setHasOtherAddrBind] = useState(false);
   const [hasCurrentBind, setHasCurrentBind] = useState(false);
   const [loaded, setLoaded] = useState(false);
-
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
 
@@ -36,6 +38,8 @@ export default function HomePage() {
   // window.Telegram.WebApp.sendData(JSON.stringify({ url: window.location }));
   console.log(location.query);
   const tid = location.query?.tid as string;
+  const gid = location.query?.gid as string;
+  useSDMint(gid, tid);
   const getBind = async () => {
     if (address) {
       const params = {
