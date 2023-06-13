@@ -21,7 +21,8 @@ export default () => {
   const [total, setTotal] = useState(0);
   const [name, setName] = useState("");
   const { factor, forceUpdate } = useForceUpdate();
-  const fetchCollections = async () => {
+  const inputRef = useRef(null);
+  const fetchCollections = async (_name?: string) => {
     if (address) {
       if (collections.length === 0) {
         setLoading(true);
@@ -31,7 +32,7 @@ export default () => {
         creator: address,
         page: page.current,
         gap: PAGE_SIZE,
-        name,
+        name: _name || name,
       });
       if (res && res.data) {
         if (res.data.length > 0) {
@@ -51,6 +52,27 @@ export default () => {
       }
     }
   };
+
+  const handleSearch = (value?: string) => {
+    page.current = 1;
+    setCollections([]);
+
+    fetchCollections(value);
+  };
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if (e.key === "Enter") {
+        if (document.activeElement === inputRef?.current?.input) {
+          const value = inputRef?.current?.input?.value;
+          handleSearch(value);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }, []);
 
   // const handleChangePage = (newPage: number, pageSize: number | undefined) => {
   //   setPage(newPage);
@@ -93,15 +115,19 @@ export default () => {
           }}
         />
       </div>
-      <Search
-        className="dao-list-search-input"
-        placeholder="Search..."
-        onSearch={(value) => {
-          page.current = 1;
-          setName(value);
-          setCollections([]);
-        }}
-      />
+      <div className="search-container">
+        <img src="/icon-search.png" alt="" className="icon-search" />
+
+        <Input
+          className="dao-list-search-input"
+          placeholder="Search..."
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+          ref={inputRef}
+        />
+      </div>
       <Spin spinning={loading}>
         <InfiniteScroll
           dataLength={collections.length}

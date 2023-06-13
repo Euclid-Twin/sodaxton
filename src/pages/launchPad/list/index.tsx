@@ -128,15 +128,6 @@ export default () => {
       {list.length === 0 && (
         <div className="launchpad-list-empty">
           <img src="/img-launch-empty.png" alt="" />
-          <Button
-            type="primary"
-            className="primary-btn btn-deploy-launchpad"
-            onClick={() => {
-              history.push("/launchpad/deploy");
-            }}
-          >
-            Launch Token
-          </Button>
         </div>
       )}
 

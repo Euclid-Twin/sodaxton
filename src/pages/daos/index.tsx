@@ -1,5 +1,5 @@
 import { DaoItem, getDaoList } from "@/api";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useModel, history } from "umi";
 import { Pagination, Spin, Input } from "antd";
 import Back from "@/components/Back";
@@ -16,6 +16,7 @@ export default () => {
   const { address } = useModel("app");
   const [daos, setDaos] = useState<DaoItem[]>([]);
   const page = useRef(1);
+  const list = useRef<DaoItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [name, setName] = useState("");
   const [total, setTotal] = useState(0);
@@ -25,43 +26,47 @@ export default () => {
   const [listSwitch, setListSwitch] = useState<ListSwitchEnum>(
     ListSwitchEnum.My_List
   );
-  const fetchDaos = async (_name?: string) => {
-    try {
-      if (daos.length === 0) {
-        setLoading(true);
-      }
-      const params = {
-        offset: (page.current - 1) * PAGE_SIZE,
-        limit: PAGE_SIZE,
-        name: _name || name,
-        address: "",
-      };
-      if (listSwitch === ListSwitchEnum.My_List) {
-        params.address = address;
-      }
-      const res = await getDaoList(params);
-      if (res && res.data) {
-        if (res.data.length > 0) {
-          setHasMore(true);
-          page.current += 1;
-          if (res.data.length < PAGE_SIZE) {
+  const fetchDaos = useCallback(
+    async (_name?: string) => {
+      try {
+        if (daos.length === 0) {
+          setLoading(true);
+        }
+        const params = {
+          offset: (page.current - 1) * PAGE_SIZE,
+          limit: PAGE_SIZE,
+          name: _name || name,
+          address: "",
+        };
+        if (listSwitch === ListSwitchEnum.My_List) {
+          params.address = address;
+        }
+        const res = await getDaoList(params);
+        if (res && res.data) {
+          if (res.data.length > 0) {
+            setHasMore(true);
+            page.current += 1;
+            if (res.data.length < PAGE_SIZE) {
+              setHasMore(false);
+            }
+          } else {
             setHasMore(false);
           }
-        } else {
-          setHasMore(false);
+          res.data.forEach((item) => {
+            item.image = getUrl(item.image);
+          });
+          const daos = [...list.current, ...res.data];
+          setDaos(daos);
+          setTotal(res.total);
         }
-        res.data.forEach((item) => {
-          item.image = getUrl(item.image);
-        });
-        setDaos([...daos, ...res.data]);
-        setTotal(res.total);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [name]
+  );
   // const handleChangePage = (newPage: number, pageSize: number | undefined) => {
   //   setPage(newPage);
   //   fetchDaos(newPage);
@@ -73,22 +78,22 @@ export default () => {
       page.current = 1;
     }
   };
-  const handleSearch = () => {
+  const handleSearch = (value?: string) => {
     page.current = 1;
-    console.log("searchInput: ", searchInput);
-    setName(searchInput);
+    list.current = [];
     setDaos([]);
-    if (searchInput === name) {
-      fetchDaos(searchInput);
-    }
+    console.log("searchInput: ", searchInput);
+    fetchDaos(value);
   };
+  useEffect(() => {
+    list.current = daos;
+  }, [daos]);
   useEffect(() => {
     const handleKeydown = (e) => {
       if (e.key === "Enter") {
         if (document.activeElement === inputRef?.current?.input) {
-          setTimeout(() => {
-            handleSearch();
-          }, 100);
+          const value = inputRef?.current?.input?.value;
+          handleSearch(value);
         }
       }
     };
@@ -99,7 +104,7 @@ export default () => {
   }, []);
   useEffect(() => {
     fetchDaos();
-  }, [address, listSwitch, name]);
+  }, [address, listSwitch]);
   return (
     <div className="page-container daos-container">
       <Back />
@@ -109,8 +114,10 @@ export default () => {
         <Input
           className="dao-list-search-input"
           placeholder="Search..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
           ref={inputRef}
         />
         <div className="list-switch">

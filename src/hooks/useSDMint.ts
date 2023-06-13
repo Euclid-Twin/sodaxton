@@ -34,20 +34,51 @@ export default (gid: number | string, uid: number | string) => {
     }
   }, [walletName]);
 
-  const sendToChat = async (detail: any) => {
-    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
+  const sendToChat = async (detail: any, nftId: number) => {
+    let caption = `#${nftId} ${detail.nft_name}\n` + `${detail.description}\n`;
+    if (caption.length > 1000) {
+      caption = caption.substring(0, 1000);
+    }
+    const reply_markup = {
+      inline_keyboard: [
+        [
+          {
+            text: "Like",
+            callback_data: "like",
+          },
+          {
+            text: "Dislike",
+            callback_data: "dislike",
+          },
+          {
+            text: "Follow",
+            callback_data: "follow",
+          },
+        ],
+      ],
+    };
+    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendPhoto`;
     const data = {
-      chat_id: detail.gid,
-      text: "Mint successfully",
-      reply_to_message_id: detail.message_id,
+      chat_id: detail.daoId,
+      photo: detail.fileId,
+      caption,
+      reply_markup,
     };
     const res = await request(url, {
       method: "POST",
       data: data,
-      requestType: "form",
       errorHandler: () => {},
     });
     console.log("sendToChat: ", res);
+    if (res.ok && res.result) {
+      const saveRes = await saveTelegramMsgData({
+        group_id: detail.daoId,
+        message_id: res.result.message_id,
+        type: "JSON",
+        data: JSON.stringify(res.result),
+      });
+      console.log("saveRes: ", saveRes);
+    }
   };
 
   const updateMintButtonMarkup = async (
@@ -64,7 +95,7 @@ export default (gid: number | string, uid: number | string) => {
         inline_keyboard: [
           [
             {
-              text: "View Group",
+              text: "View DAO",
               url: groupLink,
             },
           ],
@@ -90,7 +121,6 @@ export default (gid: number | string, uid: number | string) => {
     const res = await request(url, {
       method: "POST",
       data: data,
-      requestType: "form",
       errorHandler: () => {},
     });
   };
@@ -113,6 +143,8 @@ export default (gid: number | string, uid: number | string) => {
           image: detail.image,
           attributes: [],
         };
+        detail.nft_name = params.name;
+        detail.description = params.description;
         const tx = await genNFTMintTx(params);
         TxConfirmModal(walletDisplay);
         if (walletName === WalletName.Tonhub) {
@@ -149,7 +181,7 @@ export default (gid: number | string, uid: number | string) => {
           } else if (response.type === "success") {
             // Handle successful transaction
             message.success("Mint NFT successfully.");
-            // sendToChat(detail);
+            sendToChat(detail, tx.token_id);
             updateMintButtonMarkup("success", detail);
           } else {
             throw new Error("Impossible");
@@ -171,7 +203,7 @@ export default (gid: number | string, uid: number | string) => {
           console.log("tonkeeper resp: ", resp);
           message.success("Mint NFT successfully.");
 
-          //   sendToChat(detail);
+          sendToChat(detail, tx.token_id);
           updateMintButtonMarkup("success", detail);
         }
       }
