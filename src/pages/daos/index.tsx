@@ -65,7 +65,7 @@ export default () => {
         setLoading(false);
       }
     },
-    [name]
+    [name, listSwitch]
   );
   // const handleChangePage = (newPage: number, pageSize: number | undefined) => {
   //   setPage(newPage);

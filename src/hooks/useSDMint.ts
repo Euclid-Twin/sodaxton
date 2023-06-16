@@ -35,49 +35,54 @@ export default (gid: number | string, uid: number | string) => {
   }, [walletName]);
 
   const sendToChat = async (detail: any, nftId: number) => {
-    let caption = `#${nftId} ${detail.nft_name}\n` + `${detail.description}\n`;
-    if (caption.length > 1000) {
-      caption = caption.substring(0, 1000);
-    }
-    const reply_markup = {
-      inline_keyboard: [
-        [
-          {
-            text: "Like",
-            callback_data: "like",
-          },
-          {
-            text: "Dislike",
-            callback_data: "dislike",
-          },
-          {
-            text: "Follow",
-            callback_data: "follow",
-          },
+    try {
+      let caption =
+        `#${nftId} ${detail.nft_name}\n` + `${detail.description}\n`;
+      if (caption.length > 1000) {
+        caption = caption.substring(0, 1000);
+      }
+      const reply_markup = {
+        inline_keyboard: [
+          [
+            {
+              text: "Like",
+              callback_data: "like",
+            },
+            {
+              text: "Dislike",
+              callback_data: "dislike",
+            },
+            {
+              text: "Follow",
+              callback_data: "follow",
+            },
+          ],
         ],
-      ],
-    };
-    const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendPhoto`;
-    const data = {
-      chat_id: detail.daoId,
-      photo: detail.fileId,
-      caption,
-      reply_markup,
-    };
-    const res = await request(url, {
-      method: "POST",
-      data: data,
-      errorHandler: () => {},
-    });
-    console.log("sendToChat: ", res);
-    if (res.ok && res.result) {
-      const saveRes = await saveTelegramMsgData({
-        group_id: detail.daoId,
-        message_id: res.result.message_id,
-        type: "JSON",
-        data: JSON.stringify(res.result),
+      };
+      const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendPhoto`;
+      const data = {
+        chat_id: detail.daoId,
+        photo: detail.fileId,
+        caption,
+        reply_markup,
+      };
+      const res = await request(url, {
+        method: "POST",
+        data: data,
+        errorHandler: () => {},
       });
-      console.log("saveRes: ", saveRes);
+      console.log("sendToChat: ", res);
+      if (res.ok && res.result) {
+        const saveRes = await saveTelegramMsgData({
+          group_id: detail.daoId,
+          message_id: res.result.message_id,
+          type: "JSON",
+          data: JSON.stringify(res.result),
+        });
+        console.log("saveRes: ", saveRes);
+      }
+    } catch (e) {
+      console.log("sendToChat: ", e);
     }
   };
 
@@ -135,7 +140,7 @@ export default (gid: number | string, uid: number | string) => {
         const params = {
           owner: address,
           collection: {
-            name: "SD NFT Collection",
+            name: detail.collection_name,
             address: detail.collection_contract,
           },
           name: `${detail.nft_prefix}-${Date.now()}`,
