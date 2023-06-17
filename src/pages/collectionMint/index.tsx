@@ -100,10 +100,10 @@ export default () => {
                 text: "Dislike",
                 callback_data: "dislike",
               },
-              {
-                text: "Follow",
-                callback_data: "follow",
-              },
+              // {
+              //   text: "Follow",
+              //   callback_data: "follow",
+              // },
             ],
           ],
         };

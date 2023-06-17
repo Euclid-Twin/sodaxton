@@ -52,10 +52,10 @@ export default (gid: number | string, uid: number | string) => {
               text: "Dislike",
               callback_data: "dislike",
             },
-            {
-              text: "Follow",
-              callback_data: "follow",
-            },
+            // {
+            //   text: "Follow",
+            //   callback_data: "follow",
+            // },
           ],
         ],
       };

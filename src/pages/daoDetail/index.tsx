@@ -16,7 +16,11 @@ import ProposalResults from "@/components/ProposalResults";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
 import Back from "@/components/Back";
 import axios from "axios";
-import { getCollectionDaoByCollectionId, Collection } from "@/api";
+import {
+  getCollectionDaoByCollectionId,
+  getCollectionDaoByDaoId,
+  Collection,
+} from "@/api";
 import { UnorderedListOutlined } from "@ant-design/icons";
 const PAGE_SIZE = 10;
 
@@ -32,9 +36,8 @@ export default () => {
   const [chatLink, setChatLink] = useState("");
   const [collectionDetail, setCollectionDetail] = useState<Collection>();
   const fetchDaoDetail = async (daoId: string) => {
-    const collectionId = daoId;
-    const collectionDao = await getCollectionDaoByCollectionId({
-      id: collectionId,
+    const collectionDao = await getCollectionDaoByDaoId({
+      id: daoId,
     });
     if (collectionDao) {
       const dao = collectionDao.dao;

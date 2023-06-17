@@ -160,7 +160,7 @@ export default () => {
               <div
                 className="dao-item"
                 onClick={() => {
-                  history.push(`/daos/${item.id}`);
+                  history.push(`/daos/${item.dao_id || item.id}`);
                 }}
               >
                 <img className="dao-logo" src={item.image} alt="" />
