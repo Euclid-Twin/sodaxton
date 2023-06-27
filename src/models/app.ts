@@ -1,6 +1,6 @@
 import { DaoItem } from "@/api";
 import { LaunchPadInfo } from "@/api/apis";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export enum WalletName {
   Tonhub = "Tonhub",
@@ -8,6 +8,7 @@ export enum WalletName {
 }
 
 export default () => {
+  const [connectorLoading, setConnectorLoading] = useState(true);
   const [address, setAddress] = useState<string>("");
   const [walletName, setWalletName] = useState<WalletName>();
   const [currentDao, setCurrentDao] = useState<DaoItem>();
@@ -15,6 +16,15 @@ export default () => {
     exrate: 0,
     releaseTime: 0,
   });
+
+  useEffect(() => {
+    setTimeout(() => {
+      setConnectorLoading(false);
+    }, 3000);
+    if (address) {
+      setConnectorLoading(false);
+    }
+  }, [address]);
 
   return {
     address,
@@ -25,5 +35,7 @@ export default () => {
     setWalletName,
     currentLaunchpad,
     setCurrentLaunchpad,
+    connectorLoading,
+    setConnectorLoading,
   };
 };

@@ -211,7 +211,7 @@ export default () => {
       >
         <div className="form-left-content">
           <Form.Item
-            label="Name*"
+            label="Name *"
             name="name"
             rules={[
               {
@@ -228,7 +228,7 @@ export default () => {
             <Input className="dao-form-input" placeholder="Name" />
           </Form.Item>
           <Form.Item
-            label="Description"
+            label="Description *"
             name="description"
             rules={[
               {
@@ -249,7 +249,7 @@ export default () => {
             />
           </Form.Item>
 
-          <Form.Item label="Image" name="image">
+          <Form.Item label="Image *" name="image">
             <div className="img-upload-container">
               <Upload className="img-upload" {...uploadProps}>
                 <Button loading={uploadLoading} icon={<UploadOutlined />}>

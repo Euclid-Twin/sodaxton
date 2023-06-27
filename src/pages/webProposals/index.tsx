@@ -1,4 +1,4 @@
-import "../daoDetail/index.less";
+import "./index.less";
 import { useState, useEffect } from "react";
 import { useLocation, useParams, useModel } from "umi";
 import {
@@ -9,7 +9,7 @@ import {
 import { CHAIN_NAME } from "@/utils/constant";
 import { getCollectionDaoByCollectionId } from "@/api";
 import { Pagination, Button, Modal } from "antd";
-import { formatTimestamp } from "@/utils";
+import { formatTimestamp, getUrl } from "@/utils";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
 
 const PAGE_SIZE = 10;
@@ -32,6 +32,7 @@ export default () => {
     });
     if (collectionDao) {
       const dao = collectionDao.dao;
+      dao.image = getUrl(dao.image);
       setCurrentDao(dao);
       return collectionDao;
     }
@@ -57,18 +58,21 @@ export default () => {
   }, [dao, page]);
 
   return (
-    <div className="page-container dao-detail-container">
+    <div className="page-container web-dao-detail-container">
+      <div className="upper-bg"></div>
       <h1 className="page-title">Dao detail</h1>
       <div className="dao-detail-header">
-        <img src={currentDao?.image} alt="" />
-        <div className="dao-detail-info">
-          <p className="dao-name">{currentDao?.name}</p>
-          <p className="dao-info-item">
-            <span className="label">Create date</span>
-            <span className="value">
-              {formatTimestamp(currentDao?.startDate)}
-            </span>
-          </p>
+        <div className="dao-detail">
+          <img src={currentDao?.image} alt="" />
+          <div className="dao-detail-info">
+            <p className="dao-name">{currentDao?.name}</p>
+            <p className="dao-info-item">
+              <span className="label">Create date</span>
+              <span className="value">
+                {formatTimestamp(currentDao?.startDate)}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
       <div className="proposal-list-container">

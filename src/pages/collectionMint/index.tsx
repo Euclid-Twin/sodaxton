@@ -100,10 +100,10 @@ export default () => {
                 text: "Dislike",
                 callback_data: "dislike",
               },
-              {
-                text: "Follow",
-                callback_data: "follow",
-              },
+              // {
+              //   text: "Follow",
+              //   callback_data: "follow",
+              // },
             ],
           ],
         };
@@ -315,7 +315,7 @@ export default () => {
       >
         <div className="form-left-content">
           <Form.Item
-            label="Display Name*"
+            label="Display Name *"
             name="name"
             rules={[
               {
@@ -332,7 +332,7 @@ export default () => {
             <Input className="dao-form-input" placeholder="Name" />
           </Form.Item>
           <Form.Item
-            label="Description"
+            label="Description *"
             name="description"
             rules={[
               {
@@ -352,7 +352,7 @@ export default () => {
               placeholder="Description"
             />
           </Form.Item>
-          <Form.Item label="Image" name="image">
+          <Form.Item label="Image *" name="image">
             <div className="img-upload-container">
               <Upload className="img-upload" {...uploadProps}>
                 <Button loading={uploadLoading} icon={<UploadOutlined />}>
@@ -365,7 +365,7 @@ export default () => {
             </div>
           </Form.Item>
           <Form.Item
-            label="Collection"
+            label="Collection *"
             name="collection"
             rules={[
               {

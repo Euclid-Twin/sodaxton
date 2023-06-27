@@ -1,66 +1,88 @@
-.dao-detail-container {
+.web-dao-detail-container {
   height: 100%;
   // overflow: auto;
+  position: relative;
   width: 100%;
+  .page-title {
+    color: #ffffff !important;
+    padding-left: 0;
+  }
+  .upper-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 220px;
+    background: #343edf;
+    border-radius: 0px 0px 24px 24px;
+    z-index: -1;
+  }
   > .dao-detail-header {
     margin-bottom: 30px;
     display: flex;
     align-items: center;
-    > img {
-      width: 80px;
-      height: 80px;
-      margin-right: 19px;
-    }
-    .dao-detail-back {
-      height: 32px;
-      border-radius: 10px;
-    }
-    .dao-detail-info {
-      flex: 1;
-      > .dao-name {
-        font-family: "Poppins";
-        font-style: normal;
-        font-weight: 500;
-        font-size: 20px;
-        line-height: 30px;
-        color: #19163d;
-        margin-bottom: 8px;
+
+    .dao-detail {
+      display: flex;
+      > img {
+        width: 80px;
+        height: 80px;
+        margin-right: 15px;
+        border-radius: 20px;
       }
-      > .dao-info-item {
-        display: flex;
-        align-items: center;
-        font-family: "Poppins";
-        font-style: normal;
-        font-weight: 500;
-        font-size: 10px;
-        margin-bottom: 8px;
-        > .label {
-          font-weight: 500;
-          font-size: 12px;
-          line-height: 18px;
-          color: #8f92a1;
-          margin-right: 4px;
-        }
-        > .value {
-          font-weight: 500;
-          font-size: 14px;
-          line-height: 21px;
-          color: #19163d;
-        }
+      .dao-detail-back {
+        height: 32px;
+        border-radius: 10px;
       }
-      > .dao-info-twitter {
-        > img {
-          width: 15px;
-          height: 12px;
-          margin-right: 2px;
+      .dao-detail-info {
+        flex: 1;
+        > .dao-name {
+          font-family: "Poppins";
+          font-style: normal;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 30px;
+          color: #ffffff;
+
+          margin-bottom: 8px;
         }
-        > span,
-        a {
+        > .dao-info-item {
+          display: flex;
+          align-items: center;
           font-family: "Poppins";
           font-style: normal;
           font-weight: 500;
           font-size: 10px;
-          color: #11142d;
+          margin-bottom: 8px;
+          color: #ffffff;
+
+          > .label {
+            font-weight: 500;
+            font-size: 12px;
+            line-height: 18px;
+
+            margin-right: 4px;
+          }
+          > .value {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 21px;
+          }
+        }
+        > .dao-info-twitter {
+          > img {
+            width: 15px;
+            height: 12px;
+            margin-right: 2px;
+          }
+          > span,
+          a {
+            font-family: "Poppins";
+            font-style: normal;
+            font-weight: 500;
+            font-size: 10px;
+            color: #11142d;
+          }
         }
       }
     }
@@ -80,6 +102,7 @@
   }
 
   > .proposal-list-container {
+    margin-top: 70px;
     > .proposal-list-header {
       display: flex;
       justify-content: space-between;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { dequeue, getChatLink } from "@/api";
 import { history, useLocation, useModel } from "umi";
 import {
@@ -21,11 +21,14 @@ import { toNano, Address } from "ton";
 import { message, Modal } from "antd";
 import { request } from "umi";
 
-export default (gid: number | string, uid: number | string) => {
+export default (
+  gid: number | string,
+  uid: number | string
+): { mintLoading: boolean } => {
   const { address, walletName } = useModel("app");
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
-
+  const [mintLoading, setMintLoading] = useState(false);
   const walletDisplay = useMemo(() => {
     if (walletName === WalletName.Tonkeeper) {
       return WalletName.Tonkeeper;
@@ -41,21 +44,26 @@ export default (gid: number | string, uid: number | string) => {
       if (caption.length > 1000) {
         caption = caption.substring(0, 1000);
       }
+      const chatMember = await getChatMember(detail.gid, detail.uid);
+
+      if (chatMember) {
+        caption += `\n@${chatMember}`;
+      }
       const reply_markup = {
         inline_keyboard: [
           [
             {
-              text: "Like",
+              text: "👍",
               callback_data: "like",
             },
             {
-              text: "Dislike",
+              text: "👎",
               callback_data: "dislike",
             },
-            {
-              text: "Follow",
-              callback_data: "follow",
-            },
+            // {
+            //   text: "Follow",
+            //   callback_data: "follow",
+            // },
           ],
         ],
       };
@@ -151,6 +159,7 @@ export default (gid: number | string, uid: number | string) => {
         detail.nft_name = params.name;
         detail.description = params.description;
         const tx = await genNFTMintTx(params);
+        setMintLoading(false);
         TxConfirmModal(walletDisplay);
         if (walletName === WalletName.Tonhub) {
           const request = {
@@ -212,6 +221,7 @@ export default (gid: number | string, uid: number | string) => {
           updateMintButtonMarkup("success", detail);
         }
       }
+      setMintLoading(false);
     } catch (e) {
       console.log(e);
       message.warning("Mint NFT failed.");
@@ -219,13 +229,19 @@ export default (gid: number | string, uid: number | string) => {
         updateMintButtonMarkup("fail", detail);
       }
     } finally {
+      setMintLoading(false);
       Modal.destroyAll();
     }
   };
 
   useEffect(() => {
     if (address && gid && uid) {
+      setMintLoading(true);
       handleDequeue();
     }
   }, [address, gid, uid]);
+
+  return {
+    mintLoading,
+  };
 };

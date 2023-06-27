@@ -9,7 +9,7 @@ import { toNano, beginCell } from "ton";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 import "./index.less";
-import { Button, Modal, message } from "antd";
+import { Button, Modal, message, Spin } from "antd";
 import { useModel, Link, history, useLocation, Location } from "umi";
 import TonWalletConnect from "@/components/TonWalletConnect";
 import IconCopy from "@/assets/images/copy.svg";
@@ -23,7 +23,7 @@ import useSDMint from "@/hooks/useSDMint";
 
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
-  const { address, setAddress, walletName } = useModel("app");
+  const { address, setAddress, walletName, connectorLoading } = useModel("app");
   const [initData, setInitData] = useState();
   const [dataUnsafe, setDataUnsafe] = useState();
   const [bindLoading, setBindLoading] = useState(false);
@@ -33,53 +33,61 @@ export default function HomePage() {
   const [loaded, setLoaded] = useState(false);
   const connect = useTonhubConnect();
   const [tonConnectUi] = useTonConnectUI();
+  const [loading, setLoading] = useState(false);
 
   const location: Location = useLocation();
   // window.Telegram.WebApp.sendData(JSON.stringify({ url: window.location }));
   console.log(location.query);
   const tid = location.query?.tid as string;
   const gid = location.query?.gid as string;
-  useSDMint(gid, tid);
+  const { mintLoading } = useSDMint(gid, tid);
   const getBind = async () => {
-    if (address) {
-      const params = {
-        // addr: address,
-        tid: tid, //
-      };
-      const res: IBindResultData[] = await getBindResult(params);
+    try {
+      if (address) {
+        setLoading(true);
+        const params = {
+          // addr: address,
+          tid: tid, //
+        };
+        const res: IBindResultData[] = await getBindResult(params);
 
-      console.log(res);
-      setBindData(res);
-      if (res.length === 0) {
-        setHasCurrentBind(false);
-        setHasOtherAddrBind(false);
-      } else {
-        const item = res.find(
-          (item) =>
-            item.addr !== address &&
-            item.platform === PLATFORM &&
-            item.tid === tid
-        );
-        if (item) {
-          setHasOtherAddrBind(true);
+        console.log(res);
+        setBindData(res);
+        if (res.length === 0) {
           setHasCurrentBind(false);
-          message.warn(
-            `You've bound your wallet to ${item.addr} please unbind first!`
-          );
-        }
-        if (!item) {
-          const item2 = res.find(
+          setHasOtherAddrBind(false);
+        } else {
+          const item = res.find(
             (item) =>
-              item.addr === address &&
+              item.addr !== address &&
               item.platform === PLATFORM &&
               item.tid === tid
           );
-          if (item2) {
-            setHasCurrentBind(true);
+          if (item) {
+            setHasOtherAddrBind(true);
+            setHasCurrentBind(false);
+            message.warn(
+              `You've bound your wallet to ${item.addr} please unbind first!`
+            );
+          }
+          if (!item) {
+            const item2 = res.find(
+              (item) =>
+                item.addr === address &&
+                item.platform === PLATFORM &&
+                item.tid === tid
+            );
+            if (item2) {
+              setHasCurrentBind(true);
+            }
           }
         }
+        setLoaded(true);
       }
-      setLoaded(true);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -253,60 +261,61 @@ export default function HomePage() {
 
   return (
     <div className="home-container">
-      {address && (
-        <div className="home-content">
-          {/* <h1 className="page-title home-title">Welcome to Soton</h1> */}
-          <img src="/img-welcome.png" alt="" className="img-welcome" />
+      <Spin spinning={loading || mintLoading} size="large">
+        {address && (
+          <div className="home-content">
+            {/* <h1 className="page-title home-title">Welcome to Soton</h1> */}
+            <img src="/img-welcome.png" alt="" className="img-welcome" />
 
-          <p className="text-tip">Your address: </p>
-          <div className="address-display">
-            <span>{addressDisplay}</span>
-            <img
-              src={IconCopy}
-              alt=""
-              onClick={() => fallbackCopyTextToClipboard(address)}
-            />
-          </div>
-          <div className="bind-addr">
-            {loaded && bindData.length === 0 && (
-              <Button
-                type="primary"
-                className="primary-btn bind-btn"
-                onClick={handleBind}
-                loading={bindLoading}
-              >
-                Bind your address with Telegram
-              </Button>
-            )}
-            {((loaded && hasCurrentBind) || (loaded && hasOtherAddrBind)) && (
-              <Button
-                type="default"
-                className="default-btn bind-btn unbind-btn"
-                onClick={handleUnbind}
-                loading={unbindLoading}
-              >
-                Unbind your address with Telegram
-              </Button>
-            )}
-            {loaded && hasCurrentBind && (
-              <Button
-                type="primary"
-                className="primary-btn action-btn"
-                onClick={() => history.push("/daos")}
-              >
-                DAOs & Tokens
-              </Button>
-            )}
-            {loaded && hasCurrentBind && (
-              <Button
-                type="primary"
-                className="primary-btn action-btn"
-                onClick={() => history.push("/collections")}
-              >
-                NFT Collections
-              </Button>
-            )}
-            {/* {loaded && hasCurrentBind && (
+            <p className="text-tip">Your address: </p>
+            <div className="address-display">
+              <span>{addressDisplay}</span>
+              <img
+                src={IconCopy}
+                alt=""
+                onClick={() => fallbackCopyTextToClipboard(address)}
+              />
+            </div>
+            <div className="bind-addr">
+              {loaded && bindData.length === 0 && (
+                <Button
+                  type="primary"
+                  className="primary-btn bind-btn"
+                  onClick={handleBind}
+                  loading={bindLoading}
+                >
+                  Bind your address with Telegram
+                </Button>
+              )}
+              {((loaded && hasCurrentBind) || (loaded && hasOtherAddrBind)) && (
+                <Button
+                  type="default"
+                  className="default-btn bind-btn unbind-btn"
+                  onClick={handleUnbind}
+                  loading={unbindLoading}
+                >
+                  Unbind your address with Telegram
+                </Button>
+              )}
+              {loaded && hasCurrentBind && (
+                <Button
+                  type="primary"
+                  className="primary-btn action-btn"
+                  onClick={() => history.push("/daos")}
+                >
+                  DAOs & Tokens
+                </Button>
+              )}
+              {loaded && hasCurrentBind && (
+                <Button
+                  type="primary"
+                  className="primary-btn action-btn"
+                  onClick={() => history.push("/collections")}
+                >
+                  NFT Collections
+                </Button>
+              )}
+              {/* {loaded && hasCurrentBind && (
               <Button
                 type="primary"
                 className="primary-btn action-btn"
@@ -315,15 +324,16 @@ export default function HomePage() {
                 IDO Campaign
               </Button>
             )} */}
-            <Button className="default-btn logout-btn" onClick={handleLogout}>
-              Logout
-            </Button>
+              <Button className="default-btn logout-btn" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-      {/* <CollectionTx /> */}
+        )}
+        {/* <CollectionTx /> */}
 
-      {/* <TonWalletConnect /> */}
+        {/* <TonWalletConnect /> */}
+      </Spin>
     </div>
   );
 }

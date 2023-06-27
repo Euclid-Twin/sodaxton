@@ -215,7 +215,7 @@ export default () => {
           </div>
           <div className="form-left-content">
             <Form.Item
-              label="Title*"
+              label="Title *"
               name="title"
               rules={[
                 {
@@ -232,7 +232,7 @@ export default () => {
               <Input className="dao-form-input" placeholder="Title" />
             </Form.Item>
             <Form.Item
-              label="Description"
+              label="Description *"
               name="description"
               rules={[
                 {
@@ -256,7 +256,7 @@ export default () => {
         </div>
         <div className="form-right">
           <Form.Item
-            label="Period*"
+            label="Period *"
             name="startTime"
             rules={[{ required: !startNow, message: "Start date is required" }]}
           >
@@ -294,7 +294,7 @@ export default () => {
           <Form.Item
             label={
               <p className="label-ballot-threshold">
-                <span>Ballot Target Threshold* </span>
+                <span>Ballot Target Threshold *</span>
                 <Tooltip title="When ballots received exceed the target threshold, your proposal will become valid.">
                   <QuestionCircleOutlined />
                 </Tooltip>
@@ -318,7 +318,7 @@ export default () => {
             />
           </Form.Item>
           <Form.Item
-            label="Voter ballot*"
+            label="Voter ballot *"
             name="voter_type"
             rules={[
               {
@@ -333,7 +333,7 @@ export default () => {
             />
           </Form.Item>
           <Form.Item
-            label="Voting Option(s)*"
+            label="Voting Option(s) *"
             name="items"
             rules={[
               {

@@ -13,7 +13,7 @@ import {
 } from "@tonconnect/ui-react";
 
 import { useEffect, useState } from "react";
-import { useModel } from "umi";
+import { useModel, useLocation } from "umi";
 import Back from "@/components/Back";
 
 import "./index.less";
@@ -22,7 +22,7 @@ import {
   TonhubConnectProvider,
   useTonhubConnect,
 } from "react-ton-x";
-import { Button, Modal } from "antd";
+import { Button, Modal, Spin } from "antd";
 // TODO change to L3 client
 export const tc = new TonClient({
   endpoint: "https://scalable-api.tonwhales.com/jsonRPC",
@@ -56,11 +56,13 @@ let wasPendingConnectionChecked = false;
 // }
 export default (props: any) => {
   const queryClient = new QueryClient();
-  const { address, setAddress } = useModel("app");
+  const { address, setAddress, connectorLoading } = useModel("app");
   const [connectionState, setConnectionState] =
     useLocalStorage<RemoteConnectPersistance>("connection", {
       type: "initing",
     });
+  // console.log("connectionState: ", connectionState);
+  const location = useLocation();
 
   const connect: any = useTonhubConnect();
   // fix for stale connections, can probably be improved
@@ -93,8 +95,12 @@ export default (props: any) => {
             }}
           >
             <div className="layout">
-              {props.children}
-              {!address && <_TonConnecterInternal />}
+              <Spin spinning={connectorLoading} size="large">
+                {props.children}
+                {!address && !location.pathname.includes("web") && (
+                  <_TonConnecterInternal />
+                )}
+              </Spin>
             </div>
           </TonhubConnectProvider>
         </QueryClientProvider>
@@ -111,7 +117,7 @@ function _TonConnecterInternal(props: any) {
   const connect: any = useTonhubConnect();
   const { setAddress, address, setWalletName } = useModel("app");
   // const isConnected = connect.state.type === "online";
-  console.log(connect.state.type);
+  console.log("connect.state: ", connect.state);
   console.log("tonkeeper wallet:", wallet, tonkeeperAddress);
 
   useEffect(() => {
