@@ -64,6 +64,7 @@ export interface IDaoItem {
   tags: string[];
   types: string[];
   status: string;
+  dao_id: number;
 }
 export interface IGetDaoListParams {
   addr?: string;
@@ -308,7 +309,8 @@ export const getBindResult = async (
   }
 };
 export interface ICollectionItem {
-  id: string;
+  // id: string;
+  collection_id: string;
   name: string;
   img: string;
   dao: IDaoItem;
@@ -323,6 +325,19 @@ export const getCollectionDaoByCollectionId = async (params: {
   const url = `${API_HOST}/collection/${id}`;
   const res = await httpRequest({ url });
   console.debug("[core-dao] getCollectionDaoByCollectionId: ", res);
+  // FIXME: handle error
+  if (res.error) return null;
+  return res.data || null;
+};
+
+export const getCollectionDaoByDaoId = async (params: {
+  id: string;
+  chainId?: number;
+}): Promise<ICollectionItem | null> => {
+  const { id, chainId } = params;
+  const url = `${API_HOST}/dao/${id}`;
+  const res = await httpRequest({ url });
+  console.debug("[core-dao] getCollectionDaoByDaoId: ", res);
   // FIXME: handle error
   if (res.error) return null;
   return res.data || null;

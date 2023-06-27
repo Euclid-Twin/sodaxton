@@ -36,6 +36,31 @@ export const getCollectionDaoByCollectionId = async (params: {
     dao: toDaoItem(dao),
   };
 };
+
+export const getCollectionDaoByDaoId = async (params: {
+  id: string;
+  chainId?: number;
+}): Promise<CollectionDao | null> => {
+  const item = await Api.getCollectionDaoByDaoId(params);
+  if (!item) return null;
+  const dao = item.dao;
+  // TODO: DAO share the same id with collection
+  if (dao) {
+    if (!dao.id) dao.id = params.id;
+    if (!dao.img) dao.img = item.img;
+    if (!dao.name) dao.name = item.name;
+  }
+  return {
+    collection: {
+      id: item.collection_id,
+      name: item.name,
+      image: item.img,
+      enable_other_mint: item.enable_other_mint > 0,
+      contract: item.contract,
+    },
+    dao: toDaoItem(dao),
+  };
+};
 export interface DaoItem {
   name: string;
   startDate: number;
@@ -48,6 +73,7 @@ export interface DaoItem {
   types: string[];
   status: string;
   isMyDao?: boolean;
+  dao_id: number;
 }
 export const toDaoItem = (d: Api.IDaoItem): DaoItem => {
   return {
@@ -64,6 +90,7 @@ export const toDaoItem = (d: Api.IDaoItem): DaoItem => {
     tags: d.tags,
     types: d.types,
     status: d.status,
+    dao_id: d.dao_id,
   };
 };
 export const createDao = async () => {};
