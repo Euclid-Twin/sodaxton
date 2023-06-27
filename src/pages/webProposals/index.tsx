@@ -7,7 +7,7 @@ import {
   Proposal,
 } from "@/api/proposal";
 import { CHAIN_NAME } from "@/utils/constant";
-import { getCollectionDaoByCollectionId } from "@/api";
+import { getCollectionDaoByDaoId } from "@/api";
 import { Pagination, Button, Modal } from "antd";
 import { formatTimestamp, getUrl } from "@/utils";
 import ProposalDetailDialog from "@/components/ProposalDetailDialog";
@@ -27,7 +27,7 @@ export default () => {
 
   const fetchDaoDetail = async (daoId: string) => {
     const collectionId = daoId;
-    const collectionDao = await getCollectionDaoByCollectionId({
+    const collectionDao = await getCollectionDaoByDaoId({
       id: collectionId,
     });
     if (collectionDao) {
