@@ -17,6 +17,7 @@ export default () => {
     releaseTime: 0,
   });
 
+  const [tgId, setTgId] = useState<any>();
   useEffect(() => {
     setTimeout(() => {
       setConnectorLoading(false);
@@ -37,5 +38,7 @@ export default () => {
     setCurrentLaunchpad,
     connectorLoading,
     setConnectorLoading,
+    tgId,
+    setTgId,
   };
 };

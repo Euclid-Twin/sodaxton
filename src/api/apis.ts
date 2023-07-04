@@ -50,6 +50,8 @@ export enum ProposalVoteEnum {
   ADDRESS = 1,
   NFT = 2,
   SON = 3,
+  EVERYONE_ADDRESS = 6,
+  GROUP = 7,
 }
 export interface IDaoItem {
   name: string;

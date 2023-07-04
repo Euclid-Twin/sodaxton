@@ -23,7 +23,10 @@ import {
   ProposalStatusEnum,
   getUserVotePermission,
   getProposalCommentList,
+  ProposalVoteEnum,
+  getBindResult,
 } from "@/api/apis";
+import { getChatMember } from "@/api";
 import { formatTimestamp, sha3 } from "@/utils";
 // import { useDaoModel, useWalletModel } from '@/models';
 import { useModel } from "umi";
@@ -44,7 +47,7 @@ export default (props: IProps) => {
   const { show, detail, onClose, inDao, noVote } = props;
   const [vote, setVote] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
-  const { currentDao, address } = useModel("app");
+  const { currentDao, address, tgId } = useModel("app");
   const [voted, setVoted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [canVote, setCanVote] = useState(false);
@@ -147,6 +150,24 @@ export default (props: IProps) => {
             chain_name: CHAIN_NAME,
             proposal_id: detail.id,
           });
+          //for vote type 7
+          if (detail.voteType === ProposalVoteEnum.GROUP) {
+            let userId = tgId;
+            if (!tgId) {
+              const binds = await getBindResult({
+                addr: address,
+              });
+              userId = binds[0].tid;
+            }
+            if (userId) {
+              const chatMember = await getChatMember(
+                Number(currentDao.id),
+                Number(userId)
+              );
+              setCanVote(chatMember && res);
+              console.log("chatMember && res: ", chatMember && res);
+            }
+          }
           setCanVote(res);
         }
       }

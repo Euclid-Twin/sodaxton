@@ -41,6 +41,10 @@ const VoterBallotOptions = [
     value: 6,
     label: "1 ballot per Address",
   },
+  {
+    value: 7,
+    label: "1 ballot per nft holder in group",
+  },
   // {
   //   value: 3,
   //   label: '1 ballot per SON',

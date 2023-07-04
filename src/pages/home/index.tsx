@@ -23,7 +23,8 @@ import useSDMint from "@/hooks/useSDMint";
 
 export default function HomePage() {
   const [bindData, setBindData] = useState<IBindResultData[]>([]);
-  const { address, setAddress, walletName, connectorLoading } = useModel("app");
+  const { address, setAddress, walletName, connectorLoading, setTgId } =
+    useModel("app");
   const [initData, setInitData] = useState();
   const [dataUnsafe, setDataUnsafe] = useState();
   const [bindLoading, setBindLoading] = useState(false);
@@ -101,6 +102,12 @@ export default function HomePage() {
     // setInitData(initData);
     // setDataUnsafe(initDataUnsafe);
   }, []);
+
+  useEffect(() => {
+    if (tid) {
+      setTgId(tid);
+    }
+  }, [tid]);
 
   const getPk = (str: string) => {
     const arrs = str.split(",");
